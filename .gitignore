@@ -1,0 +1,10 @@
+# Ce depot est un monorepo (backend/ + mobile-web/) ; chaque sous-dossier a
+# aussi son propre .gitignore (backend/.gitignore, mobile-web/.gitignore,
+# mobile-web/android/.gitignore) qui reste la source principale des exclusions
+# specifiques a chaque stack. Ce fichier ne couvre que la racine du depot.
+
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json

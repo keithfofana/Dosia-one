@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Fusionne uniquement dans les builds debug (repertoire src/debug/).
+  Autorise le trafic HTTP en clair, necessaire pour tester en local contre
+  l'IP du PC de dev (http://192.168.x.x:8000). Absent des builds release,
+  qui exigent donc HTTPS (voir src/main/AndroidManifest.xml).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true" />
+</manifest>
