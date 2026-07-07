@@ -1,0 +1,18 @@
+# Configuration explicite pour Railway/Nixpacks.
+#
+# Les extensions PHP requises (pdo_pgsql, gd, zip) sont declarees directement
+# dans composer.json ("require": {"ext-pdo_pgsql": "*", ...}) — c'est la
+# methode officiellement documentee par Nixpacks pour detecter les extensions
+# PHP a partir du composer.json racine. Ne pas dupliquer ici via nixPkgs : la
+# syntaxe de fusion avec la phase "setup" auto-detectee n'est pas documentee
+# de facon fiable, et un remplacement complet de cette phase casserait
+# l'installation de PHP/Composer eux-memes.
+#
+# IMPORTANT : ce fichier n'a d'effet que si le "Root Directory" du service
+# Railway est bien regle sur `backend` (Settings > Source > Root Directory).
+# Sans ca, Railway ne trouve ni ce fichier, ni composer.json, ni package.json
+# a la racine du monorepo, et le build echoue avant meme de commencer
+# ("Nixpacks was unable to generate a build plan for this app").
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
