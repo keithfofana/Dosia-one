@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => EnsurePermission::class,
         ]);
+        // Railway (et la plupart des PaaS) terminent le HTTPS a leur proxy
+        // et transmettent en HTTP en interne. Sans ceci, $request->secure()
+        // ignore X-Forwarded-Proto et voit toujours du HTTP -> ForceHttps
+        // redirige en boucle. '*' est sûr ici : le conteneur n'est joignable
+        // que via ce proxy, jamais directement depuis internet.
+        $middleware->trustProxies(at: '*');
         $middleware->append(ForceHttps::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
