@@ -169,6 +169,17 @@
     "label": "Application language",
     "saved": "Preference saved."
   },
+  "login": {
+    "loginOrPhone": "Email or phone",
+    "submit": "Log in",
+    "noAccount": "Don't have an account yet? Create a company",
+    "twoFactorPrompt": "Open your authenticator app (Google Authenticator, Authy...) and enter the 6-digit code shown.",
+    "verify": "Verify",
+    "serverUnreachable": "Could not reach the server ({{message}}). Check that the phone/emulator is on the same network as the API and that the firewall allows the port.",
+    "invalidCredentials": "Incorrect credentials.",
+    "serverError": "Server error ({{status}}).",
+    "unexpectedError": "Unexpected error."
+  },
   "suppliers": {
     "title": "Suppliers",
     "newSupplier": "+ New supplier",

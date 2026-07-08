@@ -169,6 +169,17 @@
     "label": "Langue de l'application",
     "saved": "Préférence enregistrée."
   },
+  "login": {
+    "loginOrPhone": "Email ou téléphone",
+    "submit": "Se connecter",
+    "noAccount": "Pas encore de compte ? Créer une entreprise",
+    "twoFactorPrompt": "Ouvre ton application d'authentification (Google Authenticator, Authy...) et saisis le code à 6 chiffres affiché.",
+    "verify": "Vérifier",
+    "serverUnreachable": "Impossible de joindre le serveur ({{message}}). Vérifie que le téléphone/émulateur est sur le même réseau que l'API et que le pare-feu autorise le port.",
+    "invalidCredentials": "Identifiants incorrects.",
+    "serverError": "Erreur serveur ({{status}}).",
+    "unexpectedError": "Erreur inattendue."
+  },
   "suppliers": {
     "title": "Fournisseurs",
     "newSupplier": "+ Nouveau fournisseur",

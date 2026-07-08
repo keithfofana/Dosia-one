@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import * as authApi from '../api/auth';
 import { tokenStorage, userStorage } from '../api/client';
-import i18n, { SUPPORTED_LOCALES, type SupportedLocale } from '../i18n';
+import i18n, { SUPPORTED_LOCALES, consumeManualLocaleSelection, type SupportedLocale } from '../i18n';
+import { updateLocale } from '../api/profile';
 import type { User } from '../types/models';
 
 interface AuthContextValue {
@@ -35,7 +36,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenStorage.set(result.token);
       userStorage.set(result.user);
       setUser(result.user);
-      syncLocale(result.user);
+
+      if (consumeManualLocaleSelection() && result.user.locale !== i18n.language) {
+        // The user explicitly picked a language on the login screen before
+        // authenticating — keep it and persist it as their new account
+        // preference, rather than letting syncLocale revert to whatever was
+        // stored before (which would silently discard their choice).
+        const chosenLocale = i18n.language as SupportedLocale;
+        updateLocale(chosenLocale)
+          .then((updated) => {
+            userStorage.set(updated);
+            setUser(updated);
+          })
+          .catch(() => {});
+      } else {
+        syncLocale(result.user);
+      }
     }
   };
 

@@ -3,23 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { confirmTwoFactor, disableTwoFactor, enableTwoFactor } from '../api/twoFactor';
 import { listSessions, revokeSession } from '../api/sessions';
-import { updateLocale } from '../api/profile';
-import { SUPPORTED_LOCALES, type SupportedLocale } from '../i18n';
 import { extractErrorMessage } from '../utils/errors';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import type { SessionInfo, TwoFactorSetup } from '../types/models';
-
-const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
-  fr: 'Français',
-  en: 'English',
-  ar: 'العربية',
-  sw: 'Kiswahili',
-};
 
 export function SecurityPage() {
   const { t } = useTranslation();
   const { user, updateUser } = useAuth();
 
-  const [localeSaving, setLocaleSaving] = useState(false);
   const [localeSaved, setLocaleSaved] = useState(false);
 
   const [setup, setSetup] = useState<TwoFactorSetup | null>(null);
@@ -85,22 +76,6 @@ export function SecurityPage() {
     loadSessions();
   };
 
-  const handleLocaleChange = async (locale: SupportedLocale) => {
-    setLocaleSaving(true);
-    setLocaleSaved(false);
-    try {
-      await updateLocale(locale);
-      // updateUser() is the single source of truth for syncing i18n's active
-      // language (see AuthContext's syncLocale) — calling i18n.changeLanguage
-      // here too raced with it and intermittently left the wrong language/dir
-      // applied (observed switching ar -> fr: dir stayed rtl).
-      updateUser({ locale });
-      setLocaleSaved(true);
-    } finally {
-      setLocaleSaving(false);
-    }
-  };
-
   return (
     <div>
       <div className="page-header">
@@ -111,15 +86,7 @@ export function SecurityPage() {
       <div style={{ maxWidth: 360 }}>
         <label>
           {t('language.label')}
-          <select
-            value={user?.locale ?? 'fr'}
-            disabled={localeSaving}
-            onChange={(e) => handleLocaleChange(e.target.value as SupportedLocale)}
-          >
-            {SUPPORTED_LOCALES.map((locale) => (
-              <option key={locale} value={locale}>{LANGUAGE_NAMES[locale]}</option>
-            ))}
-          </select>
+          <LanguageSwitcher onSaved={() => setLocaleSaved(true)} />
         </label>
         {localeSaved && <p style={{ color: 'var(--success)' }}>{t('language.saved')}</p>}
       </div>

@@ -169,6 +169,17 @@
     "label": "لغة التطبيق",
     "saved": "تم حفظ التفضيل."
   },
+  "login": {
+    "loginOrPhone": "البريد الإلكتروني أو الهاتف",
+    "submit": "تسجيل الدخول",
+    "noAccount": "ليس لديك حساب بعد؟ أنشئ شركة",
+    "twoFactorPrompt": "افتح تطبيق المصادقة الخاص بك (Google Authenticator، Authy...) وأدخل الرمز المكون من 6 أرقام المعروض.",
+    "verify": "تحقق",
+    "serverUnreachable": "تعذر الوصول إلى الخادم ({{message}}). تأكد من أن الهاتف/المحاكي على نفس شبكة الـ API وأن جدار الحماية يسمح بالمنفذ.",
+    "invalidCredentials": "بيانات الاعتماد غير صحيحة.",
+    "serverError": "خطأ في الخادم ({{status}}).",
+    "unexpectedError": "خطأ غير متوقع."
+  },
   "suppliers": {
     "title": "الموردون",
     "newSupplier": "+ مورد جديد",

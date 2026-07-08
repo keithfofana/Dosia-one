@@ -169,6 +169,17 @@
     "label": "Lugha ya programu",
     "saved": "Mapendeleo yamehifadhiwa."
   },
+  "login": {
+    "loginOrPhone": "Barua pepe au simu",
+    "submit": "Ingia",
+    "noAccount": "Huna akaunti bado? Unda kampuni",
+    "twoFactorPrompt": "Fungua programu yako ya uthibitishaji (Google Authenticator, Authy...) na uingize msimbo wa tarakimu 6 unaoonyeshwa.",
+    "verify": "Thibitisha",
+    "serverUnreachable": "Imeshindwa kufikia seva ({{message}}). Hakikisha simu/kifaa cha majaribio kiko kwenye mtandao huo huo na API na kwamba ukuta wa moto unaruhusu bandari hiyo.",
+    "invalidCredentials": "Taarifa za kuingia si sahihi.",
+    "serverError": "Hitilafu ya seva ({{status}}).",
+    "unexpectedError": "Hitilafu isiyotarajiwa."
+  },
   "suppliers": {
     "title": "Wasambazaji",
     "newSupplier": "+ Msambazaji mpya",

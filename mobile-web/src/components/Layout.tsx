@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface NavItem {
   to: string;
@@ -177,6 +178,7 @@ export function Layout() {
             <div>{user?.company?.name}</div>
           </div>
           <div className="user-info">
+            <LanguageSwitcher className="topbar-lang-select" />
             <span>{user?.name} {user?.role && <span className="badge">{user.role.name}</span>}</span>
             <button onClick={handleLogout}>{t('common.logout')}</button>
           </div>

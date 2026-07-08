@@ -10,7 +10,30 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const RTL_LOCALES: SupportedLocale[] = ['ar'];
 
+export const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
+  fr: 'Français',
+  en: 'English',
+  ar: 'العربية',
+  sw: 'Kiswahili',
+};
+
 const LOCALE_STORAGE_KEY = 'dosia_locale';
+
+// Set when a user explicitly switches language on the (pre-auth) login screen,
+// so a subsequent login knows to keep that choice instead of letting
+// AuthContext's syncLocale silently overwrite it with the account's stored
+// preference. Cleared as soon as it's consumed.
+const MANUAL_LOCALE_FLAG = 'dosia_locale_manual_override';
+
+export function markManualLocaleSelection(): void {
+  sessionStorage.setItem(MANUAL_LOCALE_FLAG, '1');
+}
+
+export function consumeManualLocaleSelection(): boolean {
+  const wasManual = sessionStorage.getItem(MANUAL_LOCALE_FLAG) === '1';
+  if (wasManual) sessionStorage.removeItem(MANUAL_LOCALE_FLAG);
+  return wasManual;
+}
 
 function applyDocumentDirection(locale: string): void {
   const dir = RTL_LOCALES.includes(locale as SupportedLocale) ? 'rtl' : 'ltr';
