@@ -1,8 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createProduct, listProducts } from '../api/products';
 import type { Product } from '../types/models';
 
 export function ProductsPage() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -45,21 +47,21 @@ export function ProductsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Produits</h1>
-        <button onClick={() => setShowForm(true)}>+ Nouveau produit</button>
+        <h1>{t('products.title')}</h1>
+        <button onClick={() => setShowForm(true)}>{t('products.newProduct')}</button>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Prix achat</th>
-              <th>Prix vente</th>
-              <th>Stock</th>
-              <th>Unité</th>
+              <th>{t('common.name')}</th>
+              <th>{t('products.purchasePrice')}</th>
+              <th>{t('products.salePrice')}</th>
+              <th>{t('products.stock')}</th>
+              <th>{t('products.unit')}</th>
             </tr>
           </thead>
           <tbody>
@@ -81,31 +83,31 @@ export function ProductsPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouveau produit</h2>
+            <h2>{t('products.newProductModalTitle')}</h2>
             <form onSubmit={handleCreate}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               <label>
-                Prix d'achat
+                {t('products.purchasePriceLabel')}
                 <input type="number" step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required />
               </label>
               <label>
-                Prix de vente
+                {t('products.salePriceLabel')}
                 <input type="number" step="0.01" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} required />
               </label>
               <label>
-                Quantité initiale
+                {t('products.initialQuantity')}
                 <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
               </label>
               <label>
-                Unité
+                {t('products.unit')}
                 <input value={unit} onChange={(e) => setUnit(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

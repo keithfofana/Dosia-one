@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { createClient, listClients } from '../api/clients';
 import type { Client } from '../types/models';
 
 export function ClientsPage() {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -36,20 +38,20 @@ export function ClientsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Clients</h1>
-        <button onClick={() => setShowForm(true)}>+ Nouveau client</button>
+        <h1>{t('clients.title')}</h1>
+        <button onClick={() => setShowForm(true)}>{t('clients.newClient')}</button>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Type</th>
-              <th>Téléphone</th>
-              <th>Solde</th>
+              <th>{t('common.name')}</th>
+              <th>{t('common.type')}</th>
+              <th>{t('common.phone')}</th>
+              <th>{t('clients.balance')}</th>
               <th></th>
             </tr>
           </thead>
@@ -57,10 +59,10 @@ export function ClientsPage() {
             {clients.map((c) => (
               <tr key={c.id}>
                 <td>{c.name}</td>
-                <td><span className="badge">{c.type}</span></td>
+                <td><span className="badge">{t(`clients.type.${c.type}`)}</span></td>
                 <td>{c.phone}</td>
                 <td>{c.balance}</td>
-                <td><Link to={`/clients/${c.id}`}>Voir</Link></td>
+                <td><Link to={`/clients/${c.id}`}>{t('common.view')}</Link></td>
               </tr>
             ))}
           </tbody>
@@ -70,27 +72,27 @@ export function ClientsPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouveau client</h2>
+            <h2>{t('clients.newClientModalTitle')}</h2>
             <form onSubmit={handleCreate}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               <label>
-                Type
+                {t('common.type')}
                 <select value={type} onChange={(e) => setType(e.target.value as Client['type'])}>
-                  <option value="particulier">Particulier</option>
-                  <option value="detaillant">Détaillant</option>
-                  <option value="grossiste">Grossiste</option>
+                  <option value="particulier">{t('clients.type.particulier')}</option>
+                  <option value="detaillant">{t('clients.type.detaillant')}</option>
+                  <option value="grossiste">{t('clients.type.grossiste')}</option>
                 </select>
               </label>
               <label>
-                Téléphone
+                {t('common.phone')}
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

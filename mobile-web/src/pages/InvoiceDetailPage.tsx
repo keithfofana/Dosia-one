@@ -1,9 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getInvoice, recordPayment } from '../api/invoices';
+import { BackLink } from '../components/BackLink';
 import type { Invoice } from '../types/models';
 
 export function InvoiceDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,32 +33,32 @@ export function InvoiceDetailPage() {
       setAmount('');
       load();
     } catch {
-      setError("Erreur lors de l'enregistrement du paiement.");
+      setError(t('invoices.paymentError'));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <p>Chargement...</p>;
-  if (!invoice) return <p>Facture introuvable.</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
+  if (!invoice) return <p>{t('invoices.notFound')}</p>;
 
   const remaining = Number(invoice.total) - Number(invoice.paid_amount);
 
   return (
     <div>
-      <p><Link to="/invoices">&larr; Retour aux factures</Link></p>
-      <h1>Facture {invoice.number}</h1>
-      <p>Client : {invoice.client?.name}</p>
-      <p>Statut : <span className="badge">{invoice.status}</span></p>
-      <p>Total : {invoice.total} — Payé : {invoice.paid_amount} — Restant : {remaining.toFixed(2)}</p>
+      <BackLink to="/invoices">{t('invoices.backToInvoices')}</BackLink>
+      <h1>{t('invoices.invoiceNumber', { number: invoice.number })}</h1>
+      <p>{t('common.client')} : {invoice.client?.name}</p>
+      <p>{t('common.status')} : <span className="badge">{t(`invoices.status.${invoice.status}`)}</span></p>
+      <p>{t('invoices.totalPaidRemaining', { total: invoice.total, paid: invoice.paid_amount, remaining: remaining.toFixed(2) })}</p>
 
-      <h2>Lignes</h2>
+      <h2>{t('common.lines')}</h2>
       <table>
         <thead>
           <tr>
-            <th>Produit</th>
-            <th>Qté</th>
-            <th>Prix unit.</th>
+            <th>{t('common.product')}</th>
+            <th>{t('common.quantity')}</th>
+            <th>{t('common.unitPrice')}</th>
           </tr>
         </thead>
         <tbody>
@@ -69,13 +72,13 @@ export function InvoiceDetailPage() {
         </tbody>
       </table>
 
-      <h2>Paiements</h2>
+      <h2>{t('invoices.payments')}</h2>
       <table>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Montant</th>
-            <th>Méthode</th>
+            <th>{t('common.date')}</th>
+            <th>{t('common.amount')}</th>
+            <th>{t('common.method')}</th>
           </tr>
         </thead>
         <tbody>
@@ -83,7 +86,7 @@ export function InvoiceDetailPage() {
             <tr key={p.id}>
               <td>{new Date(p.created_at).toLocaleDateString()}</td>
               <td>{p.amount}</td>
-              <td>{p.method}</td>
+              <td>{t(`invoices.methods.${p.method}`)}</td>
             </tr>
           ))}
         </tbody>
@@ -91,23 +94,23 @@ export function InvoiceDetailPage() {
 
       {remaining > 0 && (
         <div className="stat-card" style={{ marginTop: 16, maxWidth: 320 }}>
-          <h3>Enregistrer un paiement</h3>
+          <h3>{t('invoices.recordPayment')}</h3>
           <form onSubmit={handlePayment}>
             <label>
-              Montant
+              {t('common.amount')}
               <input type="number" step="0.01" max={remaining} value={amount} onChange={(e) => setAmount(e.target.value)} required />
             </label>
             <label>
-              Méthode
+              {t('common.method')}
               <select value={method} onChange={(e) => setMethod(e.target.value)}>
-                <option value="especes">Espèces</option>
-                <option value="mobile_money">Mobile money</option>
-                <option value="virement">Virement</option>
-                <option value="cheque">Chèque</option>
+                <option value="especes">{t('invoices.methods.especes')}</option>
+                <option value="mobile_money">{t('invoices.methods.mobile_money')}</option>
+                <option value="virement">{t('invoices.methods.virement')}</option>
+                <option value="cheque">{t('invoices.methods.cheque')}</option>
               </select>
             </label>
             {error && <p className="error">{error}</p>}
-            <button type="submit" disabled={saving}>{saving ? '...' : 'Enregistrer'}</button>
+            <button type="submit" disabled={saving}>{saving ? '...' : t('common.save')}</button>
           </form>
         </div>
       )}

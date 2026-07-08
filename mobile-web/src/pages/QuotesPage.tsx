@@ -1,10 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listQuotes, createQuote, type QuoteItemInput } from '../api/quotes';
 import { listClients } from '../api/clients';
 import { listProducts } from '../api/products';
 import type { Client, Product, Quote } from '../types/models';
 
 export function QuotesPage() {
+  const { t } = useTranslation();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -55,20 +57,20 @@ export function QuotesPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Devis</h1>
-        <button onClick={() => setShowForm(true)}>+ Nouveau devis</button>
+        <h1>{t('quotes.title')}</h1>
+        <button onClick={() => setShowForm(true)}>{t('quotes.newQuote')}</button>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Numéro</th>
-              <th>Client</th>
-              <th>Statut</th>
-              <th>Total</th>
+              <th>{t('quotes.number')}</th>
+              <th>{t('common.client')}</th>
+              <th>{t('common.status')}</th>
+              <th>{t('common.total')}</th>
             </tr>
           </thead>
           <tbody>
@@ -76,7 +78,7 @@ export function QuotesPage() {
               <tr key={q.id}>
                 <td>{q.number}</td>
                 <td>{q.client?.name}</td>
-                <td><span className="badge">{q.status}</span></td>
+                <td><span className="badge">{t(`quotes.status.${q.status}`)}</span></td>
                 <td>{q.total}</td>
               </tr>
             ))}
@@ -87,23 +89,23 @@ export function QuotesPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouveau devis</h2>
+            <h2>{t('quotes.newQuoteModalTitle')}</h2>
             <form onSubmit={handleCreate}>
               <label>
-                Client
+                {t('common.client')}
                 <select value={clientId} onChange={(e) => setClientId(Number(e.target.value))} required>
-                  <option value="">-- Choisir --</option>
+                  <option value="">{t('common.choose')}</option>
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </label>
 
-              <h3>Lignes</h3>
+              <h3>{t('common.lines')}</h3>
               {items.map((item, idx) => (
                 <div className="item-row" key={idx}>
                   <label>
-                    Produit
+                    {t('common.product')}
                     <select value={item.product_id} onChange={(e) => handleProductChange(idx, Number(e.target.value))}>
                       <option value={0}>--</option>
                       {products.map((p) => (
@@ -112,21 +114,21 @@ export function QuotesPage() {
                     </select>
                   </label>
                   <label>
-                    Qté
+                    {t('common.quantity')}
                     <input type="number" min={1} value={item.quantity} onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })} />
                   </label>
                   <label>
-                    Prix unit.
+                    {t('common.unitPrice')}
                     <input type="number" step="0.01" value={item.unit_price} onChange={(e) => updateItem(idx, { unit_price: Number(e.target.value) })} />
                   </label>
                   <button type="button" className="secondary" onClick={() => removeItem(idx)}>×</button>
                 </div>
               ))}
-              <button type="button" className="secondary" onClick={addItem}>+ Ligne</button>
+              <button type="button" className="secondary" onClick={addItem}>{t('common.addLine')}</button>
 
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

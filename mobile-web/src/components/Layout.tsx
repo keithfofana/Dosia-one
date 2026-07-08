@@ -1,68 +1,66 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
 
 interface NavItem {
   to: string;
-  label: string;
+  labelKey: string;
   end?: boolean;
 }
 
-const modules = [
-  { to: '/', label: 'Tableau de bord', end: true },
-  { to: '/clients', label: 'CRM · Clients' },
-  { to: '/products', label: 'Stock · Produits' },
-  { to: '/quotes', label: 'Ventes · Devis' },
-  { to: '/invoices', label: 'Ventes · Factures' },
+const modules: NavItem[] = [
+  { to: '/', labelKey: 'nav.dashboard', end: true },
+  { to: '/clients', labelKey: 'nav.crmClients' },
+  { to: '/products', labelKey: 'nav.stockProducts' },
+  { to: '/quotes', labelKey: 'nav.ventesQuotes' },
+  { to: '/invoices', labelKey: 'nav.ventesInvoices' },
 ];
 
-const achatsModules = [
-  { to: '/suppliers', label: 'Achats · Fournisseurs' },
-  { to: '/purchase-requests', label: 'Achats · Demandes' },
-  { to: '/purchase-orders', label: 'Achats · Commandes' },
+const achatsModules: NavItem[] = [
+  { to: '/suppliers', labelKey: 'nav.achatsSuppliers' },
+  { to: '/purchase-requests', labelKey: 'nav.achatsRequests' },
+  { to: '/purchase-orders', labelKey: 'nav.achatsOrders' },
 ];
 
-const tresorerieModules = [
-  { to: '/treasury', label: 'Trésorerie' },
+const tresorerieModules: NavItem[] = [
+  { to: '/treasury', labelKey: 'nav.treasury' },
 ];
 
-const comptabiliteModules = [
-  { to: '/accounting/chart-of-accounts', label: 'Compta · Plan comptable' },
-  { to: '/accounting/journal-entries', label: 'Compta · Écritures' },
-  { to: '/accounting/reports', label: 'Compta · Rapports' },
+const comptabiliteModules: NavItem[] = [
+  { to: '/accounting/chart-of-accounts', labelKey: 'nav.comptaChart' },
+  { to: '/accounting/journal-entries', labelKey: 'nav.comptaEntries' },
+  { to: '/accounting/reports', labelKey: 'nav.comptaReports' },
 ];
 
-const rhModules = [
-  { to: '/rh/employees', label: 'RH · Employés' },
-  { to: '/rh/salaries', label: 'RH · Salaires' },
-  { to: '/rh/attendances', label: 'RH · Présences' },
-  { to: '/rh/leaves', label: 'RH · Congés' },
-  { to: '/rh/contracts', label: 'RH · Contrats' },
-  { to: '/rh/evaluations', label: 'RH · Évaluations' },
+const rhModules: NavItem[] = [
+  { to: '/rh/employees', labelKey: 'nav.rhEmployees' },
+  { to: '/rh/salaries', labelKey: 'nav.rhSalaries' },
+  { to: '/rh/attendances', labelKey: 'nav.rhAttendances' },
+  { to: '/rh/leaves', labelKey: 'nav.rhLeaves' },
+  { to: '/rh/contracts', labelKey: 'nav.rhContracts' },
+  { to: '/rh/evaluations', labelKey: 'nav.rhEvaluations' },
 ];
 
-const productionModules = [
-  { to: '/production/raw-materials', label: 'Production · Matières premières' },
-  { to: '/production/bom', label: 'Production · Nomenclature (BOM)' },
-  { to: '/production/orders', label: 'Production · Ordres de fabrication' },
+const productionModules: NavItem[] = [
+  { to: '/production/raw-materials', labelKey: 'nav.productionRawMaterials' },
+  { to: '/production/bom', labelKey: 'nav.productionBom' },
+  { to: '/production/orders', labelKey: 'nav.productionOrders' },
 ];
 
-const accountModules = [
-  { to: '/security', label: 'Mon compte · Sécurité' },
+const accountModules: NavItem[] = [
+  { to: '/security', labelKey: 'nav.accountSecurity' },
 ];
 
-const parametresModules = [
-  { to: '/settings/users', label: 'Paramètres · Utilisateurs' },
-  { to: '/settings/roles', label: 'Paramètres · Rôles' },
-  { to: '/settings/activity-log', label: "Paramètres · Journal d'activité" },
-];
-
-const comingSoon = [
-  'Documents',
+const parametresModules: NavItem[] = [
+  { to: '/settings/users', labelKey: 'nav.parametresUsers' },
+  { to: '/settings/roles', labelKey: 'nav.parametresRoles' },
+  { to: '/settings/activity-log', labelKey: 'nav.parametresActivityLog' },
 ];
 
 export function Layout() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,7 +87,7 @@ export function Layout() {
         onClick={closeSidebar}
         className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
       >
-        {m.label}
+        {t(m.labelKey)}
       </NavLink>
     ));
 
@@ -109,23 +107,21 @@ export function Layout() {
           {renderLinks(accountModules)}
         </nav>
         <div className="coming-soon">
-          <div className="coming-soon-title">Bientôt disponible</div>
-          {comingSoon.map((m) => (
-            <div key={m} className="nav-link disabled">{m}</div>
-          ))}
+          <div className="coming-soon-title">{t('nav.comingSoon')}</div>
+          <div className="nav-link disabled">{t('nav.documents')}</div>
         </div>
       </aside>
       <div className="main">
         <header className="topbar">
           <div className="topbar-left">
-            <button className="menu-toggle secondary" onClick={() => setSidebarOpen((open) => !open)} aria-label="Ouvrir le menu">
+            <button className="menu-toggle secondary" onClick={() => setSidebarOpen((open) => !open)} aria-label={t('common.openMenu')}>
               ☰
             </button>
             <div>{user?.company?.name}</div>
           </div>
           <div className="user-info">
             <span>{user?.name} {user?.role && <span className="badge">{user.role.name}</span>}</span>
-            <button onClick={handleLogout}>Déconnexion</button>
+            <button onClick={handleLogout}>{t('common.logout')}</button>
           </div>
         </header>
         <main className="content">

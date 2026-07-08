@@ -27,6 +27,7 @@ export interface User {
   phone: string | null;
   two_factor_enabled: boolean;
   is_active: boolean;
+  locale: string;
   company?: Company;
   role?: Role | null;
 }

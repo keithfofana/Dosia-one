@@ -1,0 +1,142 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "create": "Créer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "view": "Voir",
+    "name": "Nom",
+    "type": "Type",
+    "phone": "Téléphone",
+    "email": "Email",
+    "status": "Statut",
+    "total": "Total",
+    "client": "Client",
+    "product": "Produit",
+    "quantity": "Qté",
+    "unitPrice": "Prix unit.",
+    "date": "Date",
+    "amount": "Montant",
+    "method": "Méthode",
+    "lines": "Lignes",
+    "addLine": "+ Ligne",
+    "choose": "-- Choisir --",
+    "logout": "Déconnexion",
+    "openMenu": "Ouvrir le menu",
+    "back": "Retour"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "crmClients": "CRM · Clients",
+    "stockProducts": "Stock · Produits",
+    "ventesQuotes": "Ventes · Devis",
+    "ventesInvoices": "Ventes · Factures",
+    "achatsSuppliers": "Achats · Fournisseurs",
+    "achatsRequests": "Achats · Demandes",
+    "achatsOrders": "Achats · Commandes",
+    "treasury": "Trésorerie",
+    "comptaChart": "Compta · Plan comptable",
+    "comptaEntries": "Compta · Écritures",
+    "comptaReports": "Compta · Rapports",
+    "rhEmployees": "RH · Employés",
+    "rhSalaries": "RH · Salaires",
+    "rhAttendances": "RH · Présences",
+    "rhLeaves": "RH · Congés",
+    "rhContracts": "RH · Contrats",
+    "rhEvaluations": "RH · Évaluations",
+    "productionRawMaterials": "Production · Matières premières",
+    "productionBom": "Production · Nomenclature (BOM)",
+    "productionOrders": "Production · Ordres de fabrication",
+    "accountSecurity": "Mon compte · Sécurité",
+    "parametresUsers": "Paramètres · Utilisateurs",
+    "parametresRoles": "Paramètres · Rôles",
+    "parametresActivityLog": "Paramètres · Journal d'activité",
+    "comingSoon": "Bientôt disponible",
+    "documents": "Documents"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "revenueTotal": "Chiffre d'affaires (total)",
+    "revenueMonth": "CA du mois",
+    "estimatedProfit": "Bénéfice estimé",
+    "treasury": "Trésorerie",
+    "alerts": "Alertes",
+    "lowStock": "Stock faible",
+    "unpaidInvoices": "Factures impayées",
+    "clientBirthdays": "Anniversaires clients"
+  },
+  "clients": {
+    "title": "Clients",
+    "newClient": "+ Nouveau client",
+    "balance": "Solde",
+    "newClientModalTitle": "Nouveau client",
+    "type": {
+      "particulier": "Particulier",
+      "detaillant": "Détaillant",
+      "grossiste": "Grossiste"
+    },
+    "backToClients": "Retour aux clients",
+    "history": "Historique",
+    "noActivity": "Aucune activité.",
+    "detail": "Détail",
+    "notFound": "Client introuvable.",
+    "quoteEntry": "Devis {{number}} — {{total}} ({{status}})",
+    "invoiceEntry": "Facture {{number}} — {{total}} ({{status}})"
+  },
+  "products": {
+    "title": "Produits",
+    "newProduct": "+ Nouveau produit",
+    "purchasePrice": "Prix achat",
+    "salePrice": "Prix vente",
+    "stock": "Stock",
+    "unit": "Unité",
+    "newProductModalTitle": "Nouveau produit",
+    "purchasePriceLabel": "Prix d'achat",
+    "salePriceLabel": "Prix de vente",
+    "initialQuantity": "Quantité initiale"
+  },
+  "quotes": {
+    "title": "Devis",
+    "newQuote": "+ Nouveau devis",
+    "number": "Numéro",
+    "newQuoteModalTitle": "Nouveau devis",
+    "status": {
+      "brouillon": "Brouillon",
+      "envoye": "Envoyé",
+      "accepte": "Accepté",
+      "refuse": "Refusé",
+      "converti": "Converti"
+    }
+  },
+  "invoices": {
+    "title": "Factures",
+    "newInvoice": "+ Nouvelle facture",
+    "number": "Numéro",
+    "paid": "Payé",
+    "newInvoiceModalTitle": "Nouvelle facture",
+    "backToInvoices": "Retour aux factures",
+    "invoiceNumber": "Facture {{number}}",
+    "totalPaidRemaining": "Total : {{total}} — Payé : {{paid}} — Restant : {{remaining}}",
+    "payments": "Paiements",
+    "recordPayment": "Enregistrer un paiement",
+    "paymentError": "Erreur lors de l'enregistrement du paiement.",
+    "notFound": "Facture introuvable.",
+    "status": {
+      "due": "Dû",
+      "partiel": "Partiel",
+      "paye": "Payé",
+      "annule": "Annulé"
+    },
+    "methods": {
+      "especes": "Espèces",
+      "mobile_money": "Mobile money",
+      "virement": "Virement",
+      "cheque": "Chèque"
+    }
+  },
+  "language": {
+    "title": "Langue",
+    "label": "Langue de l'application",
+    "saved": "Préférence enregistrée."
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "common": {
+    "loading": "Inapakia...",
+    "create": "Unda",
+    "cancel": "Ghairi",
+    "save": "Hifadhi",
+    "view": "Angalia",
+    "name": "Jina",
+    "type": "Aina",
+    "phone": "Simu",
+    "email": "Barua pepe",
+    "status": "Hali",
+    "total": "Jumla",
+    "client": "Mteja",
+    "product": "Bidhaa",
+    "quantity": "Kiasi",
+    "unitPrice": "Bei ya kitengo",
+    "date": "Tarehe",
+    "amount": "Kiasi cha pesa",
+    "method": "Njia",
+    "lines": "Vipengele",
+    "addLine": "+ Kipengele",
+    "choose": "-- Chagua --",
+    "logout": "Toka",
+    "openMenu": "Fungua menyu",
+    "back": "Rudi"
+  },
+  "nav": {
+    "dashboard": "Dashibodi",
+    "crmClients": "CRM · Wateja",
+    "stockProducts": "Stoo · Bidhaa",
+    "ventesQuotes": "Mauzo · Nukuu",
+    "ventesInvoices": "Mauzo · Ankara",
+    "achatsSuppliers": "Ununuzi · Wasambazaji",
+    "achatsRequests": "Ununuzi · Maombi",
+    "achatsOrders": "Ununuzi · Oda",
+    "treasury": "Hazina",
+    "comptaChart": "Uhasibu · Chati ya akaunti",
+    "comptaEntries": "Uhasibu · Kumbukumbu za jarida",
+    "comptaReports": "Uhasibu · Ripoti",
+    "rhEmployees": "Rasilimali watu · Wafanyakazi",
+    "rhSalaries": "Rasilimali watu · Mishahara",
+    "rhAttendances": "Rasilimali watu · Mahudhurio",
+    "rhLeaves": "Rasilimali watu · Likizo",
+    "rhContracts": "Rasilimali watu · Mikataba",
+    "rhEvaluations": "Rasilimali watu · Tathmini",
+    "productionRawMaterials": "Uzalishaji · Malighafi",
+    "productionBom": "Uzalishaji · Orodha ya malighafi (BOM)",
+    "productionOrders": "Uzalishaji · Oda za uzalishaji",
+    "accountSecurity": "Akaunti yangu · Usalama",
+    "parametresUsers": "Mipangilio · Watumiaji",
+    "parametresRoles": "Mipangilio · Majukumu",
+    "parametresActivityLog": "Mipangilio · Kumbukumbu za shughuli",
+    "comingSoon": "Inakuja hivi karibuni",
+    "documents": "Nyaraka"
+  },
+  "dashboard": {
+    "title": "Dashibodi",
+    "revenueTotal": "Mapato (jumla)",
+    "revenueMonth": "Mapato ya mwezi huu",
+    "estimatedProfit": "Faida inayokadiriwa",
+    "treasury": "Hazina",
+    "alerts": "Tahadhari",
+    "lowStock": "Bidhaa chache stoo",
+    "unpaidInvoices": "Ankara zisizolipwa",
+    "clientBirthdays": "Siku za kuzaliwa za wateja"
+  },
+  "clients": {
+    "title": "Wateja",
+    "newClient": "+ Mteja mpya",
+    "balance": "Salio",
+    "newClientModalTitle": "Mteja mpya",
+    "type": {
+      "particulier": "Mtu binafsi",
+      "detaillant": "Muuzaji rejareja",
+      "grossiste": "Muuzaji jumla"
+    },
+    "backToClients": "Rudi kwa wateja",
+    "history": "Historia",
+    "noActivity": "Hakuna shughuli.",
+    "detail": "Maelezo",
+    "notFound": "Mteja hakupatikana.",
+    "quoteEntry": "Nukuu {{number}} — {{total}} ({{status}})",
+    "invoiceEntry": "Ankara {{number}} — {{total}} ({{status}})"
+  },
+  "products": {
+    "title": "Bidhaa",
+    "newProduct": "+ Bidhaa mpya",
+    "purchasePrice": "Bei ya ununuzi",
+    "salePrice": "Bei ya mauzo",
+    "stock": "Stoo",
+    "unit": "Kipimo",
+    "newProductModalTitle": "Bidhaa mpya",
+    "purchasePriceLabel": "Bei ya ununuzi",
+    "salePriceLabel": "Bei ya mauzo",
+    "initialQuantity": "Kiasi cha awali"
+  },
+  "quotes": {
+    "title": "Nukuu",
+    "newQuote": "+ Nukuu mpya",
+    "number": "Nambari",
+    "newQuoteModalTitle": "Nukuu mpya",
+    "status": {
+      "brouillon": "Rasimu",
+      "envoye": "Imetumwa",
+      "accepte": "Imekubaliwa",
+      "refuse": "Imekataliwa",
+      "converti": "Imebadilishwa"
+    }
+  },
+  "invoices": {
+    "title": "Ankara",
+    "newInvoice": "+ Ankara mpya",
+    "number": "Nambari",
+    "paid": "Imelipwa",
+    "newInvoiceModalTitle": "Ankara mpya",
+    "backToInvoices": "Rudi kwa ankara",
+    "invoiceNumber": "Ankara {{number}}",
+    "totalPaidRemaining": "Jumla: {{total}} — Imelipwa: {{paid}} — Iliyobaki: {{remaining}}",
+    "payments": "Malipo",
+    "recordPayment": "Rekodi malipo",
+    "paymentError": "Hitilafu wakati wa kurekodi malipo.",
+    "notFound": "Ankara haikupatikana.",
+    "status": {
+      "due": "Inadaiwa",
+      "partiel": "Sehemu",
+      "paye": "Imelipwa",
+      "annule": "Imeghairiwa"
+    },
+    "methods": {
+      "especes": "Fedha taslimu",
+      "mobile_money": "Pesa za simu",
+      "virement": "Uhamisho wa benki",
+      "cheque": "Hundi"
+    }
+  },
+  "language": {
+    "title": "Lugha",
+    "label": "Lugha ya programu",
+    "saved": "Mapendeleo yamehifadhiwa."
+  }
+}

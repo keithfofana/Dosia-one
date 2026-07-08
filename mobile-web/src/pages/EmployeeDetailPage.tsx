@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getEmployee } from '../api/employees';
+import { BackLink } from '../components/BackLink';
 import type { Employee } from '../types/models';
 
 export function EmployeeDetailPage() {
@@ -18,7 +19,7 @@ export function EmployeeDetailPage() {
 
   return (
     <div>
-      <p><Link to="/rh/employees">&larr; Retour aux employés</Link></p>
+      <BackLink to="/rh/employees">Retour aux employés</BackLink>
       <h1>{employee.name}</h1>
       <p>{employee.position} {employee.hire_date && `· embauché le ${new Date(employee.hire_date).toLocaleDateString()}`}</p>
       <p>Compte utilisateur lié : {employee.user?.name ?? '—'}</p>

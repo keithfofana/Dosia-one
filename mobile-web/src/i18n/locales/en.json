@@ -1,0 +1,142 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "create": "Create",
+    "cancel": "Cancel",
+    "save": "Save",
+    "view": "View",
+    "name": "Name",
+    "type": "Type",
+    "phone": "Phone",
+    "email": "Email",
+    "status": "Status",
+    "total": "Total",
+    "client": "Client",
+    "product": "Product",
+    "quantity": "Qty",
+    "unitPrice": "Unit price",
+    "date": "Date",
+    "amount": "Amount",
+    "method": "Method",
+    "lines": "Lines",
+    "addLine": "+ Line",
+    "choose": "-- Choose --",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "back": "Back"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "crmClients": "CRM · Clients",
+    "stockProducts": "Stock · Products",
+    "ventesQuotes": "Sales · Quotes",
+    "ventesInvoices": "Sales · Invoices",
+    "achatsSuppliers": "Purchasing · Suppliers",
+    "achatsRequests": "Purchasing · Requests",
+    "achatsOrders": "Purchasing · Orders",
+    "treasury": "Treasury",
+    "comptaChart": "Accounting · Chart of accounts",
+    "comptaEntries": "Accounting · Journal entries",
+    "comptaReports": "Accounting · Reports",
+    "rhEmployees": "HR · Employees",
+    "rhSalaries": "HR · Salaries",
+    "rhAttendances": "HR · Attendance",
+    "rhLeaves": "HR · Leave",
+    "rhContracts": "HR · Contracts",
+    "rhEvaluations": "HR · Evaluations",
+    "productionRawMaterials": "Production · Raw materials",
+    "productionBom": "Production · Bill of materials (BOM)",
+    "productionOrders": "Production · Manufacturing orders",
+    "accountSecurity": "My account · Security",
+    "parametresUsers": "Settings · Users",
+    "parametresRoles": "Settings · Roles",
+    "parametresActivityLog": "Settings · Activity log",
+    "comingSoon": "Coming soon",
+    "documents": "Documents"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "revenueTotal": "Revenue (total)",
+    "revenueMonth": "Revenue this month",
+    "estimatedProfit": "Estimated profit",
+    "treasury": "Treasury",
+    "alerts": "Alerts",
+    "lowStock": "Low stock",
+    "unpaidInvoices": "Unpaid invoices",
+    "clientBirthdays": "Client birthdays"
+  },
+  "clients": {
+    "title": "Clients",
+    "newClient": "+ New client",
+    "balance": "Balance",
+    "newClientModalTitle": "New client",
+    "type": {
+      "particulier": "Individual",
+      "detaillant": "Retailer",
+      "grossiste": "Wholesaler"
+    },
+    "backToClients": "Back to clients",
+    "history": "History",
+    "noActivity": "No activity.",
+    "detail": "Detail",
+    "notFound": "Client not found.",
+    "quoteEntry": "Quote {{number}} — {{total}} ({{status}})",
+    "invoiceEntry": "Invoice {{number}} — {{total}} ({{status}})"
+  },
+  "products": {
+    "title": "Products",
+    "newProduct": "+ New product",
+    "purchasePrice": "Purchase price",
+    "salePrice": "Sale price",
+    "stock": "Stock",
+    "unit": "Unit",
+    "newProductModalTitle": "New product",
+    "purchasePriceLabel": "Purchase price",
+    "salePriceLabel": "Sale price",
+    "initialQuantity": "Initial quantity"
+  },
+  "quotes": {
+    "title": "Quotes",
+    "newQuote": "+ New quote",
+    "number": "Number",
+    "newQuoteModalTitle": "New quote",
+    "status": {
+      "brouillon": "Draft",
+      "envoye": "Sent",
+      "accepte": "Accepted",
+      "refuse": "Rejected",
+      "converti": "Converted"
+    }
+  },
+  "invoices": {
+    "title": "Invoices",
+    "newInvoice": "+ New invoice",
+    "number": "Number",
+    "paid": "Paid",
+    "newInvoiceModalTitle": "New invoice",
+    "backToInvoices": "Back to invoices",
+    "invoiceNumber": "Invoice {{number}}",
+    "totalPaidRemaining": "Total: {{total}} — Paid: {{paid}} — Remaining: {{remaining}}",
+    "payments": "Payments",
+    "recordPayment": "Record a payment",
+    "paymentError": "Error recording the payment.",
+    "notFound": "Invoice not found.",
+    "status": {
+      "due": "Due",
+      "partiel": "Partial",
+      "paye": "Paid",
+      "annule": "Cancelled"
+    },
+    "methods": {
+      "especes": "Cash",
+      "mobile_money": "Mobile money",
+      "virement": "Bank transfer",
+      "cheque": "Cheque"
+    }
+  },
+  "language": {
+    "title": "Language",
+    "label": "Application language",
+    "saved": "Preference saved."
+  }
+}

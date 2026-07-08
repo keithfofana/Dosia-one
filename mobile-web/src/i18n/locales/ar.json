@@ -1,0 +1,142 @@
+{
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "create": "إنشاء",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "view": "عرض",
+    "name": "الاسم",
+    "type": "النوع",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "status": "الحالة",
+    "total": "الإجمالي",
+    "client": "العميل",
+    "product": "المنتج",
+    "quantity": "الكمية",
+    "unitPrice": "سعر الوحدة",
+    "date": "التاريخ",
+    "amount": "المبلغ",
+    "method": "الطريقة",
+    "lines": "البنود",
+    "addLine": "+ بند",
+    "choose": "-- اختر --",
+    "logout": "تسجيل الخروج",
+    "openMenu": "فتح القائمة",
+    "back": "رجوع"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "crmClients": "العملاء · إدارة العملاء",
+    "stockProducts": "المخزون · المنتجات",
+    "ventesQuotes": "المبيعات · عروض الأسعار",
+    "ventesInvoices": "المبيعات · الفواتير",
+    "achatsSuppliers": "المشتريات · الموردون",
+    "achatsRequests": "المشتريات · الطلبات",
+    "achatsOrders": "المشتريات · أوامر الشراء",
+    "treasury": "الخزينة",
+    "comptaChart": "المحاسبة · دليل الحسابات",
+    "comptaEntries": "المحاسبة · القيود اليومية",
+    "comptaReports": "المحاسبة · التقارير",
+    "rhEmployees": "الموارد البشرية · الموظفون",
+    "rhSalaries": "الموارد البشرية · الرواتب",
+    "rhAttendances": "الموارد البشرية · الحضور",
+    "rhLeaves": "الموارد البشرية · الإجازات",
+    "rhContracts": "الموارد البشرية · العقود",
+    "rhEvaluations": "الموارد البشرية · التقييمات",
+    "productionRawMaterials": "الإنتاج · المواد الخام",
+    "productionBom": "الإنتاج · قائمة المواد (BOM)",
+    "productionOrders": "الإنتاج · أوامر التصنيع",
+    "accountSecurity": "حسابي · الأمان",
+    "parametresUsers": "الإعدادات · المستخدمون",
+    "parametresRoles": "الإعدادات · الأدوار",
+    "parametresActivityLog": "الإعدادات · سجل النشاط",
+    "comingSoon": "قريبًا",
+    "documents": "المستندات"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "revenueTotal": "رقم الأعمال (الإجمالي)",
+    "revenueMonth": "رقم الأعمال الشهري",
+    "estimatedProfit": "الربح المقدر",
+    "treasury": "الخزينة",
+    "alerts": "التنبيهات",
+    "lowStock": "مخزون منخفض",
+    "unpaidInvoices": "فواتير غير مدفوعة",
+    "clientBirthdays": "أعياد ميلاد العملاء"
+  },
+  "clients": {
+    "title": "العملاء",
+    "newClient": "+ عميل جديد",
+    "balance": "الرصيد",
+    "newClientModalTitle": "عميل جديد",
+    "type": {
+      "particulier": "فرد",
+      "detaillant": "تاجر تجزئة",
+      "grossiste": "تاجر جملة"
+    },
+    "backToClients": "رجوع إلى العملاء",
+    "history": "السجل",
+    "noActivity": "لا يوجد نشاط.",
+    "detail": "التفاصيل",
+    "notFound": "العميل غير موجود.",
+    "quoteEntry": "عرض سعر {{number}} — {{total}} ({{status}})",
+    "invoiceEntry": "فاتورة {{number}} — {{total}} ({{status}})"
+  },
+  "products": {
+    "title": "المنتجات",
+    "newProduct": "+ منتج جديد",
+    "purchasePrice": "سعر الشراء",
+    "salePrice": "سعر البيع",
+    "stock": "المخزون",
+    "unit": "الوحدة",
+    "newProductModalTitle": "منتج جديد",
+    "purchasePriceLabel": "سعر الشراء",
+    "salePriceLabel": "سعر البيع",
+    "initialQuantity": "الكمية الأولية"
+  },
+  "quotes": {
+    "title": "عروض الأسعار",
+    "newQuote": "+ عرض سعر جديد",
+    "number": "الرقم",
+    "newQuoteModalTitle": "عرض سعر جديد",
+    "status": {
+      "brouillon": "مسودة",
+      "envoye": "تم الإرسال",
+      "accepte": "مقبول",
+      "refuse": "مرفوض",
+      "converti": "تم التحويل"
+    }
+  },
+  "invoices": {
+    "title": "الفواتير",
+    "newInvoice": "+ فاتورة جديدة",
+    "number": "الرقم",
+    "paid": "مدفوع",
+    "newInvoiceModalTitle": "فاتورة جديدة",
+    "backToInvoices": "رجوع إلى الفواتير",
+    "invoiceNumber": "فاتورة {{number}}",
+    "totalPaidRemaining": "الإجمالي: {{total}} — المدفوع: {{paid}} — المتبقي: {{remaining}}",
+    "payments": "المدفوعات",
+    "recordPayment": "تسجيل دفعة",
+    "paymentError": "حدث خطأ أثناء تسجيل الدفعة.",
+    "notFound": "الفاتورة غير موجودة.",
+    "status": {
+      "due": "مستحق",
+      "partiel": "جزئي",
+      "paye": "مدفوع",
+      "annule": "ملغى"
+    },
+    "methods": {
+      "especes": "نقدًا",
+      "mobile_money": "الدفع عبر الهاتف المحمول",
+      "virement": "تحويل بنكي",
+      "cheque": "شيك"
+    }
+  },
+  "language": {
+    "title": "اللغة",
+    "label": "لغة التطبيق",
+    "saved": "تم حفظ التفضيل."
+  }
+}
