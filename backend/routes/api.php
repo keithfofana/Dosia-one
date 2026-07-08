@@ -25,6 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/sessions', [\App\Http\Controllers\SessionController::class, 'index']);
     Route::delete('/auth/sessions/{token}', [\App\Http\Controllers\SessionController::class, 'destroy']);
 
+    // --- Preferences personnelles (langue, ...) ---
+    Route::patch('/profile/locale', [\App\Http\Controllers\ProfileController::class, 'updateLocale']);
+
     // ==========================================
     // 1. TABLEAU DE BORD
     // ==========================================
