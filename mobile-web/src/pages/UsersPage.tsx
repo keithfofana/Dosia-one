@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createUser, deleteUser, listUsers, setUserActive } from '../api/users';
 import { listRoles } from '../api/roles';
 import type { Role, User } from '../types/models';
 
 export function UsersPage() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,7 @@ export function UsersPage() {
       setRoleId('');
       load();
     } catch {
-      setError('Impossible de créer cet utilisateur (email/téléphone déjà utilisé ?).');
+      setError(t('users.createError'));
     } finally {
       setSaving(false);
     }
@@ -58,7 +60,7 @@ export function UsersPage() {
   };
 
   const handleDelete = async (user: User) => {
-    if (!confirm(`Supprimer définitivement « ${user.name} » ?`)) return;
+    if (!confirm(t('users.confirmDelete', { name: user.name }))) return;
     await deleteUser(user.id);
     load();
   };
@@ -66,21 +68,21 @@ export function UsersPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Utilisateurs</h1>
-        <button onClick={() => setShowForm(true)}>+ Nouvel utilisateur</button>
+        <h1>{t('users.title')}</h1>
+        <button onClick={() => setShowForm(true)}>{t('users.newUser')}</button>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Email</th>
-              <th>Téléphone</th>
-              <th>Rôle</th>
-              <th>Statut</th>
+              <th>{t('common.name')}</th>
+              <th>{t('common.email')}</th>
+              <th>{t('common.phone')}</th>
+              <th>{t('users.role')}</th>
+              <th>{t('common.status')}</th>
               <th></th>
             </tr>
           </thead>
@@ -92,13 +94,13 @@ export function UsersPage() {
                 <td>{u.phone}</td>
                 <td><span className="badge">{u.role?.name ?? '—'}</span></td>
                 <td style={{ color: u.is_active ? 'var(--success)' : 'var(--danger)' }}>
-                  {u.is_active ? 'Actif' : 'Désactivé'}
+                  {u.is_active ? t('users.active') : t('users.deactivated')}
                 </td>
                 <td style={{ display: 'flex', gap: 8 }}>
                   <button className="secondary" onClick={() => toggleActive(u)}>
-                    {u.is_active ? 'Désactiver' : 'Réactiver'}
+                    {u.is_active ? t('users.deactivate') : t('users.reactivate')}
                   </button>
-                  <button className="secondary" onClick={() => handleDelete(u)}>Supprimer</button>
+                  <button className="secondary" onClick={() => handleDelete(u)}>{t('common.delete')}</button>
                 </td>
               </tr>
             ))}
@@ -109,28 +111,28 @@ export function UsersPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouvel utilisateur</h2>
+            <h2>{t('users.newUserModalTitle')}</h2>
             <form onSubmit={handleCreate}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               <label>
-                Email
+                {t('common.email')}
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </label>
               <label>
-                Téléphone
+                {t('common.phone')}
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} />
               </label>
               <label>
-                Mot de passe
+                {t('common.password')}
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
               </label>
               <label>
-                Rôle
+                {t('users.role')}
                 <select value={roleId} onChange={(e) => setRoleId(Number(e.target.value))}>
-                  <option value="">-- Aucun --</option>
+                  <option value="">{t('users.noRole')}</option>
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
@@ -138,8 +140,8 @@ export function UsersPage() {
               </label>
               {error && <p className="error">{error}</p>}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

@@ -1,15 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createRole, deleteRole, listPermissions, listRoles, updateRolePermissions } from '../api/roles';
 import type { Permission, Role } from '../types/models';
 
-const actionLabels: Record<string, string> = {
-  view: 'Voir',
-  create: 'Créer',
-  update: 'Modifier',
-  delete: 'Supprimer',
-};
-
 export function RolesPage() {
+  const { t } = useTranslation();
+  const actionLabels: Record<string, string> = {
+    view: t('common.view'),
+    create: t('common.create'),
+    update: t('common.edit'),
+    delete: t('common.delete'),
+  };
+
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +76,7 @@ export function RolesPage() {
   };
 
   const handleDelete = async (role: Role) => {
-    if (!confirm(`Supprimer le rôle « ${role.name} » ?`)) return;
+    if (!confirm(t('roles.confirmDelete', { name: role.name }))) return;
     await deleteRole(role.id);
     load();
   };
@@ -82,18 +84,18 @@ export function RolesPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Rôles</h1>
-        <button onClick={() => setShowCreate(true)}>+ Nouveau rôle</button>
+        <h1>{t('roles.title')}</h1>
+        <button onClick={() => setShowCreate(true)}>{t('roles.newRole')}</button>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Permissions</th>
+              <th>{t('common.name')}</th>
+              <th>{t('roles.permissions')}</th>
               <th></th>
             </tr>
           </thead>
@@ -103,8 +105,8 @@ export function RolesPage() {
                 <td>{r.name}</td>
                 <td>{r.permissions?.length ?? 0}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  <button className="secondary" onClick={() => openEdit(r)}>Gérer permissions</button>
-                  <button className="secondary" onClick={() => handleDelete(r)}>Supprimer</button>
+                  <button className="secondary" onClick={() => openEdit(r)}>{t('roles.managePermissions')}</button>
+                  <button className="secondary" onClick={() => handleDelete(r)}>{t('common.delete')}</button>
                 </td>
               </tr>
             ))}
@@ -115,15 +117,15 @@ export function RolesPage() {
       {showCreate && (
         <div className="modal-backdrop" onClick={() => setShowCreate(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouveau rôle</h2>
+            <h2>{t('roles.newRoleModalTitle')}</h2>
             <form onSubmit={handleCreate}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowCreate(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowCreate(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -133,10 +135,10 @@ export function RolesPage() {
       {editingRole && (
         <div className="modal-backdrop" onClick={() => setEditingRole(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ width: 480 }}>
-            <h2>Permissions — {editingRole.name}</h2>
+            <h2>{t('roles.permissionsModalTitle', { name: editingRole.name })}</h2>
             {Object.entries(permissionsByModule).map(([module, perms]) => (
               <div key={module} style={{ marginBottom: 12 }}>
-                <strong style={{ textTransform: 'capitalize' }}>{module}</strong>
+                <strong>{t(`modules.${module}`, module)}</strong>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
                   {perms.map((p) => (
                     <label key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, margin: 0 }}>
@@ -153,8 +155,8 @@ export function RolesPage() {
               </div>
             ))}
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button onClick={savePermissions} disabled={saving}>{saving ? '...' : 'Enregistrer'}</button>
-              <button type="button" className="secondary" onClick={() => setEditingRole(null)}>Annuler</button>
+              <button onClick={savePermissions} disabled={saving}>{saving ? '...' : t('common.save')}</button>
+              <button type="button" className="secondary" onClick={() => setEditingRole(null)}>{t('common.cancel')}</button>
             </div>
           </div>
         </div>

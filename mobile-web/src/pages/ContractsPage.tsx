@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { createContract, deleteContract, listContracts, updateContract } from '../api/contracts';
 import { listEmployees } from '../api/employees';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Contract, Employee } from '../types/models';
 
 const isExpiringSoon = (endDate: string | null) => {
@@ -13,6 +14,7 @@ const isExpiringSoon = (endDate: string | null) => {
 };
 
 export function ContractsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'rh.update');
   const canDelete = hasPermission(user, 'rh.delete');
@@ -76,36 +78,35 @@ export function ContractsPage() {
   };
 
   const handleDelete = async (contract: Contract) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteContract(contract.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
   return (
     <div>
       <div className="page-header">
-        <h1>Contrats</h1>
-        <button onClick={openCreate}>+ Nouveau contrat</button>
+        <h1>{t('contracts.title')}</h1>
+        <button onClick={openCreate}>{t('contracts.newContract')}</button>
       </div>
 
       {deleteError && <p className="error">{deleteError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Employé</th>
-              <th>Type</th>
-              <th>Début</th>
-              <th>Fin</th>
+              <th>{t('common.employee')}</th>
+              <th>{t('common.type')}</th>
+              <th>{t('common.startDate')}</th>
+              <th>{t('common.endDate')}</th>
               <th></th>
             </tr>
           </thead>
@@ -117,11 +118,11 @@ export function ContractsPage() {
                 <td>{new Date(c.start_date).toLocaleDateString()}</td>
                 <td>
                   {c.end_date ? new Date(c.end_date).toLocaleDateString() : '—'}
-                  {isExpiringSoon(c.end_date) && <span className="badge" style={{ color: 'var(--danger)', marginLeft: 8 }}>Expire bientôt</span>}
+                  {isExpiringSoon(c.end_date) && <span className="badge" style={{ color: 'var(--danger)', marginLeft: 8 }}>{t('contracts.expiringSoon')}</span>}
                 </td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(c)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(c)}>Supprimer</button>}
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(c)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(c)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -132,32 +133,32 @@ export function ContractsPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Modifier le contrat' : 'Nouveau contrat'}</h2>
+            <h2>{editing ? t('common.edit') : t('contracts.newContractModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Employé
+                {t('common.employee')}
                 <select value={employeeId} onChange={(e) => setEmployeeId(Number(e.target.value))} required>
-                  <option value="">-- Choisir --</option>
+                  <option value="">{t('common.choose')}</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
                 </select>
               </label>
               <label>
-                Type de contrat
-                <input value={type} onChange={(e) => setType(e.target.value)} placeholder="CDI, CDD, Stage..." required />
+                {t('contracts.contractType')}
+                <input value={type} onChange={(e) => setType(e.target.value)} placeholder={t('contracts.contractTypePlaceholder')} required />
               </label>
               <label>
-                Date de début
+                {t('common.startDate')}
                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
               </label>
               <label>
-                Date de fin (optionnel)
+                {t('contracts.endDateOptional')}
                 <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

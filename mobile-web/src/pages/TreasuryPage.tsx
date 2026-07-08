@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import {
   createBankAccount,
   createCashRegister,
@@ -15,9 +15,11 @@ import {
 } from '../api/treasury';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { BankAccount, CashRegister, TreasuryForecast } from '../types/models';
 
 export function TreasuryPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'tresorerie.update');
   const canDelete = hasPermission(user, 'tresorerie.delete');
@@ -88,22 +90,20 @@ export function TreasuryPage() {
       setShowBankForm(false);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setBankError((message as string) ?? 'Enregistrement impossible.');
+      setBankError(extractErrorMessage(err, t('common.saveError')));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteBank = async (account: BankAccount) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteBankAccount(account.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
@@ -134,22 +134,20 @@ export function TreasuryPage() {
       setShowCashForm(false);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setCashError((message as string) ?? 'Enregistrement impossible.');
+      setCashError(extractErrorMessage(err, t('common.saveError')));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteCash = async (register: CashRegister) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteCashRegister(register.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
@@ -175,33 +173,33 @@ export function TreasuryPage() {
       setMovementRegister(null);
       load();
     } catch {
-      setError('Solde de caisse insuffisant ou montant invalide.');
+      setError(t('treasury.insufficientBalance'));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <p>Chargement...</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
 
   return (
     <div>
-      <h1>Trésorerie</h1>
+      <h1>{t('treasury.title')}</h1>
 
       <div className="card-grid">
         <div className="stat-card">
-          <div className="text-muted">Trésorerie actuelle</div>
+          <div className="text-muted">{t('treasury.currentTreasury')}</div>
           <div className="value">{forecast?.current_treasury.total.toLocaleString()}</div>
         </div>
         <div className="stat-card">
-          <div className="text-muted">Encaissements attendus</div>
+          <div className="text-muted">{t('treasury.expectedInflows')}</div>
           <div className="value">{forecast?.expected_inflows.total.toLocaleString()}</div>
         </div>
         <div className="stat-card">
-          <div className="text-muted">Décaissements attendus</div>
+          <div className="text-muted">{t('treasury.expectedOutflows')}</div>
           <div className="value">{forecast?.expected_outflows.total.toLocaleString()}</div>
         </div>
         <div className="stat-card">
-          <div className="text-muted">Solde prévisionnel</div>
+          <div className="text-muted">{t('treasury.projectedBalance')}</div>
           <div className="value">{forecast?.projected_balance.toLocaleString()}</div>
         </div>
       </div>
@@ -209,15 +207,15 @@ export function TreasuryPage() {
       {deleteError && <p className="error">{deleteError}</p>}
 
       <div className="page-header">
-        <h2>Comptes bancaires</h2>
-        <button onClick={openCreateBank}>+ Nouveau compte</button>
+        <h2>{t('treasury.bankAccounts')}</h2>
+        <button onClick={openCreateBank}>{t('treasury.newBankAccount')}</button>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Banque</th>
-            <th>Numéro de compte</th>
-            <th>Solde</th>
+            <th>{t('treasury.bank')}</th>
+            <th>{t('treasury.accountNumber')}</th>
+            <th>{t('treasury.balance')}</th>
             <th></th>
           </tr>
         </thead>
@@ -228,8 +226,8 @@ export function TreasuryPage() {
               <td>{b.account_number}</td>
               <td>{b.balance}</td>
               <td style={{ display: 'flex', gap: 8 }}>
-                {canUpdate && <button className="secondary" onClick={() => openEditBank(b)}>Modifier</button>}
-                {canDelete && <button className="secondary" onClick={() => handleDeleteBank(b)}>Supprimer</button>}
+                {canUpdate && <button className="secondary" onClick={() => openEditBank(b)}>{t('common.edit')}</button>}
+                {canDelete && <button className="secondary" onClick={() => handleDeleteBank(b)}>{t('common.delete')}</button>}
               </td>
             </tr>
           ))}
@@ -237,14 +235,14 @@ export function TreasuryPage() {
       </table>
 
       <div className="page-header" style={{ marginTop: 24 }}>
-        <h2>Caisses</h2>
-        <button onClick={openCreateCash}>+ Nouvelle caisse</button>
+        <h2>{t('treasury.cashRegisters')}</h2>
+        <button onClick={openCreateCash}>{t('treasury.newCashRegister')}</button>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Nom</th>
-            <th>Solde</th>
+            <th>{t('common.name')}</th>
+            <th>{t('treasury.balance')}</th>
             <th></th>
           </tr>
         </thead>
@@ -254,10 +252,10 @@ export function TreasuryPage() {
               <td>{c.name}</td>
               <td>{c.balance}</td>
               <td style={{ display: 'flex', gap: 8 }}>
-                <button className="secondary" onClick={() => openMovement(c, 'deposit')}>Dépôt</button>
-                <button className="secondary" onClick={() => openMovement(c, 'withdraw')}>Retrait</button>
-                {canUpdate && <button className="secondary" onClick={() => openEditCash(c)}>Modifier</button>}
-                {canDelete && <button className="secondary" onClick={() => handleDeleteCash(c)}>Supprimer</button>}
+                <button className="secondary" onClick={() => openMovement(c, 'deposit')}>{t('treasury.deposit')}</button>
+                <button className="secondary" onClick={() => openMovement(c, 'withdraw')}>{t('treasury.withdraw')}</button>
+                {canUpdate && <button className="secondary" onClick={() => openEditCash(c)}>{t('common.edit')}</button>}
+                {canDelete && <button className="secondary" onClick={() => handleDeleteCash(c)}>{t('common.delete')}</button>}
               </td>
             </tr>
           ))}
@@ -267,20 +265,20 @@ export function TreasuryPage() {
       {showBankForm && (
         <div className="modal-backdrop" onClick={() => setShowBankForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editingBank ? 'Modifier le compte bancaire' : 'Nouveau compte bancaire'}</h2>
+            <h2>{editingBank ? t('common.edit') : t('treasury.newBankAccountModalTitle')}</h2>
             {bankError && <p className="error">{bankError}</p>}
             <form onSubmit={handleSubmitBank}>
               <label>
-                Banque
+                {t('treasury.bank')}
                 <input value={bankName} onChange={(e) => setBankName(e.target.value)} required />
               </label>
               <label>
-                Numéro de compte
+                {t('treasury.accountNumber')}
                 <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editingBank ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowBankForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editingBank ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowBankForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -290,16 +288,16 @@ export function TreasuryPage() {
       {showCashForm && (
         <div className="modal-backdrop" onClick={() => setShowCashForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editingCash ? 'Modifier la caisse' : 'Nouvelle caisse'}</h2>
+            <h2>{editingCash ? t('common.edit') : t('treasury.newCashRegisterModalTitle')}</h2>
             {cashError && <p className="error">{cashError}</p>}
             <form onSubmit={handleSubmitCash}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={cashName} onChange={(e) => setCashName(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editingCash ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowCashForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editingCash ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowCashForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -309,21 +307,21 @@ export function TreasuryPage() {
       {movementRegister && (
         <div className="modal-backdrop" onClick={() => setMovementRegister(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{movementType === 'deposit' ? 'Dépôt' : 'Retrait'} — {movementRegister.name}</h2>
-            <p>Solde actuel : {movementRegister.balance}</p>
+            <h2>{movementType === 'deposit' ? t('treasury.deposit') : t('treasury.withdraw')} — {movementRegister.name}</h2>
+            <p>{t('treasury.currentBalance', { balance: movementRegister.balance })}</p>
             <form onSubmit={handleMovement}>
               <label>
-                Montant
+                {t('common.amount')}
                 <input type="number" step="0.01" min="0.01" value={movementAmount} onChange={(e) => setMovementAmount(e.target.value)} required />
               </label>
               <label>
-                Motif
+                {t('common.reason')}
                 <input value={movementReason} onChange={(e) => setMovementReason(e.target.value)} />
               </label>
               {error && <p className="error">{error}</p>}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Confirmer'}</button>
-                <button type="button" className="secondary" onClick={() => setMovementRegister(null)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('treasury.confirmMovement')}</button>
+                <button type="button" className="secondary" onClick={() => setMovementRegister(null)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

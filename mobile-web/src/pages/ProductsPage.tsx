@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isAxiosError } from 'axios';
 import { createProduct, deleteProduct, listProducts, updateProduct } from '../api/products';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Product } from '../types/models';
 
 export function ProductsPage() {
@@ -88,8 +88,7 @@ export function ProductsPage() {
       await deleteProduct(product.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 

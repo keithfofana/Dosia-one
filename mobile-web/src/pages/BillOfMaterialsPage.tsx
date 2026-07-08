@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getBillOfMaterial, updateBillOfMaterial } from '../api/billOfMaterials';
 import { listProducts } from '../api/products';
 import { listRawMaterials } from '../api/rawMaterials';
@@ -10,6 +11,7 @@ interface Row {
 }
 
 export function BillOfMaterialsPage() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [rawMaterials, setRawMaterials] = useState<RawMaterial[]>([]);
   const [productId, setProductId] = useState<number | ''>('');
@@ -65,13 +67,13 @@ export function BillOfMaterialsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Nomenclature (BOM)</h1>
+        <h1>{t('billOfMaterials.title')}</h1>
       </div>
 
       <label>
-        Produit
+        {t('common.product')}
         <select value={productId} onChange={(e) => setProductId(e.target.value ? Number(e.target.value) : '')}>
-          <option value="">-- Choisir un produit --</option>
+          <option value="">{t('billOfMaterials.chooseProduct')}</option>
           {products.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
@@ -80,17 +82,17 @@ export function BillOfMaterialsPage() {
 
       {productId && (
         loading ? (
-          <p>Chargement...</p>
+          <p>{t('common.loading')}</p>
         ) : (
           <div style={{ marginTop: 16 }}>
-            <p>Matières premières nécessaires pour fabriquer <strong>1 unité</strong> de ce produit :</p>
+            <p>{t('billOfMaterials.neededForPrefix')} <strong>{t('billOfMaterials.oneUnit')}</strong> {t('billOfMaterials.neededForSuffix')}</p>
             {rows.map((row, idx) => (
               <div key={idx} className="item-row">
                 <select
                   value={row.raw_material_id}
                   onChange={(e) => updateRow(idx, { raw_material_id: e.target.value ? Number(e.target.value) : '' })}
                 >
-                  <option value="">-- Matière première --</option>
+                  <option value="">{t('billOfMaterials.chooseRawMaterial')}</option>
                   {rawMaterials.map((rm) => (
                     <option key={rm.id} value={rm.id}>{rm.name} ({rm.unit})</option>
                   ))}
@@ -99,18 +101,18 @@ export function BillOfMaterialsPage() {
                   type="number"
                   step="0.01"
                   min={0.01}
-                  placeholder="Quantité par unité"
+                  placeholder={t('billOfMaterials.quantityPerUnit')}
                   value={row.quantity_per_unit}
                   onChange={(e) => updateRow(idx, { quantity_per_unit: e.target.value })}
                 />
-                <button type="button" className="secondary" onClick={() => removeRow(idx)}>Retirer</button>
+                <button type="button" className="secondary" onClick={() => removeRow(idx)}>{t('billOfMaterials.remove')}</button>
               </div>
             ))}
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button type="button" className="secondary" onClick={addRow}>+ Ligne</button>
-              <button type="button" onClick={handleSave} disabled={saving}>{saving ? '...' : 'Enregistrer la nomenclature'}</button>
+              <button type="button" className="secondary" onClick={addRow}>{t('common.addLine')}</button>
+              <button type="button" onClick={handleSave} disabled={saving}>{saving ? '...' : t('billOfMaterials.saveBom')}</button>
             </div>
-            {saved && <p style={{ color: 'var(--success)' }}>Nomenclature enregistrée.</p>}
+            {saved && <p style={{ color: 'var(--success)' }}>{t('billOfMaterials.savedConfirmation')}</p>}
           </div>
         )
       )}

@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isAxiosError } from 'axios';
 import { deleteQuote, getQuote, listQuotes, createQuote, updateQuote, type QuoteItemInput } from '../api/quotes';
 import { listClients } from '../api/clients';
 import { listProducts } from '../api/products';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Client, Product, Quote } from '../types/models';
 
 export function QuotesPage() {
@@ -81,8 +81,7 @@ export function QuotesPage() {
       setShowForm(false);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setFormError((message as string) ?? 'Enregistrement impossible.');
+      setFormError(extractErrorMessage(err, t('common.saveError')));
     } finally {
       setSaving(false);
     }
@@ -95,8 +94,7 @@ export function QuotesPage() {
       await deleteQuote(quote.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 

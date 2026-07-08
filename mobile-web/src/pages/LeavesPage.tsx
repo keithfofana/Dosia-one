@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { createLeave, deleteLeave, listLeaves, updateLeave, updateLeaveStatus } from '../api/leaves';
 import { listEmployees } from '../api/employees';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Employee, Leave } from '../types/models';
 
 const statusColor = (status: Leave['status']) => {
@@ -13,6 +14,7 @@ const statusColor = (status: Leave['status']) => {
 };
 
 export function LeavesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'rh.update');
   const canDelete = hasPermission(user, 'rh.delete');
@@ -77,36 +79,35 @@ export function LeavesPage() {
   };
 
   const handleDelete = async (leave: Leave) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteLeave(leave.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
   return (
     <div>
       <div className="page-header">
-        <h1>Congés</h1>
-        <button onClick={openCreate}>+ Demande de congé</button>
+        <h1>{t('leaves.title')}</h1>
+        <button onClick={openCreate}>{t('leaves.newLeaveRequest')}</button>
       </div>
 
       {deleteError && <p className="error">{deleteError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Employé</th>
-              <th>Début</th>
-              <th>Fin</th>
-              <th>Statut</th>
+              <th>{t('common.employee')}</th>
+              <th>{t('common.startDate')}</th>
+              <th>{t('common.endDate')}</th>
+              <th>{t('common.status')}</th>
               <th></th>
             </tr>
           </thead>
@@ -116,16 +117,16 @@ export function LeavesPage() {
                 <td>{l.employee?.name}</td>
                 <td>{new Date(l.start_date).toLocaleDateString()}</td>
                 <td>{new Date(l.end_date).toLocaleDateString()}</td>
-                <td><span className="badge" style={{ color: statusColor(l.status) }}>{l.status}</span></td>
+                <td><span className="badge" style={{ color: statusColor(l.status) }}>{t(`leaves.status.${l.status}`)}</span></td>
                 <td style={{ display: 'flex', gap: 8 }}>
                   {l.status === 'en_attente' && (
                     <>
-                      <button className="secondary" onClick={() => handleStatus(l, 'approuve')}>Valider</button>
-                      <button className="secondary" onClick={() => handleStatus(l, 'refuse')}>Refuser</button>
+                      <button className="secondary" onClick={() => handleStatus(l, 'approuve')}>{t('leaves.approve')}</button>
+                      <button className="secondary" onClick={() => handleStatus(l, 'refuse')}>{t('leaves.reject')}</button>
                     </>
                   )}
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(l)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(l)}>Supprimer</button>}
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(l)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(l)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -136,28 +137,28 @@ export function LeavesPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Modifier la demande de congé' : 'Nouvelle demande de congé'}</h2>
+            <h2>{editing ? t('common.edit') : t('leaves.newLeaveModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Employé
+                {t('common.employee')}
                 <select value={employeeId} onChange={(e) => setEmployeeId(Number(e.target.value))} required>
-                  <option value="">-- Choisir --</option>
+                  <option value="">{t('common.choose')}</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
                 </select>
               </label>
               <label>
-                Date de début
+                {t('common.startDate')}
                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
               </label>
               <label>
-                Date de fin
+                {t('common.endDate')}
                 <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Envoyer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('leaves.sendRequest')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

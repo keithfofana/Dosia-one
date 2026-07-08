@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { createRawMaterial, deleteRawMaterial, listRawMaterials, updateRawMaterial } from '../api/rawMaterials';
 import { createRawMaterialMovement } from '../api/rawMaterialMovements';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { RawMaterial } from '../types/models';
 
 export function RawMaterialsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'production.update');
   const canDelete = hasPermission(user, 'production.delete');
@@ -57,7 +59,7 @@ export function RawMaterialsPage() {
     setSaving(true);
     try {
       if (editing) {
-        await updateRawMaterial(editing.id, { name, unit, unit_cost: Number(unitCost), quantity: editing.quantity });
+        await updateRawMaterial(editing.id, { name, unit, unit_cost: Number(unitCost), quantity: Number(editing.quantity) });
       } else {
         await createRawMaterial({ name, quantity: Number(quantity), unit, unit_cost: Number(unitCost) });
       }
@@ -69,14 +71,13 @@ export function RawMaterialsPage() {
   };
 
   const handleDelete = async (material: RawMaterial) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteRawMaterial(material.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
@@ -104,22 +105,22 @@ export function RawMaterialsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Matières premières</h1>
-        <button onClick={openCreate}>+ Nouvelle matière première</button>
+        <h1>{t('rawMaterials.title')}</h1>
+        <button onClick={openCreate}>{t('rawMaterials.newMaterial')}</button>
       </div>
 
       {deleteError && <p className="error">{deleteError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Stock</th>
-              <th>Unité</th>
-              <th>Coût unitaire</th>
+              <th>{t('common.name')}</th>
+              <th>{t('products.stock')}</th>
+              <th>{t('products.unit')}</th>
+              <th>{t('rawMaterials.unitCost')}</th>
               <th></th>
             </tr>
           </thead>
@@ -131,9 +132,9 @@ export function RawMaterialsPage() {
                 <td>{m.unit}</td>
                 <td>{m.unit_cost}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  <button className="secondary" onClick={() => setMovementFor(m)}>+ Mouvement</button>
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(m)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(m)}>Supprimer</button>}
+                  <button className="secondary" onClick={() => setMovementFor(m)}>{t('rawMaterials.addMovement')}</button>
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(m)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(m)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -144,31 +145,31 @@ export function RawMaterialsPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Modifier la matière première' : 'Nouvelle matière première'}</h2>
+            <h2>{editing ? t('common.edit') : t('rawMaterials.newMaterialModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               {editing ? (
-                <p className="hint">Pour modifier la quantité en stock, utilisez le bouton « + Mouvement ».</p>
+                <p className="hint">{t('rawMaterials.quantityEditHint')}</p>
               ) : (
                 <label>
-                  Quantité en stock
+                  {t('rawMaterials.quantityInStock')}
                   <input type="number" step="0.01" min={0} value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
                 </label>
               )}
               <label>
-                Unité
-                <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="kg, litre, unité..." required />
+                {t('products.unit')}
+                <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder={t('rawMaterials.unitPlaceholder')} required />
               </label>
               <label>
-                Coût unitaire
+                {t('rawMaterials.unitCost')}
                 <input type="number" step="0.01" min={0} value={unitCost} onChange={(e) => setUnitCost(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -178,27 +179,27 @@ export function RawMaterialsPage() {
       {movementFor && (
         <div className="modal-backdrop" onClick={() => setMovementFor(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Mouvement de stock — {movementFor.name}</h2>
+            <h2>{t('rawMaterials.movementModalTitle', { name: movementFor.name })}</h2>
             <form onSubmit={handleMovement}>
               <label>
-                Type
+                {t('common.type')}
                 <select value={movementType} onChange={(e) => setMovementType(e.target.value as typeof movementType)}>
-                  <option value="entree">Entrée</option>
-                  <option value="sortie">Sortie</option>
-                  <option value="ajustement">Ajustement (nouvelle quantité totale)</option>
+                  <option value="entree">{t('stockMovements.type.entree')}</option>
+                  <option value="sortie">{t('stockMovements.type.sortie')}</option>
+                  <option value="ajustement">{t('rawMaterials.adjustmentTypeLabel')}</option>
                 </select>
               </label>
               <label>
-                Quantité
+                {t('common.quantity')}
                 <input type="number" step="0.01" min={0.01} value={movementQuantity} onChange={(e) => setMovementQuantity(e.target.value)} required />
               </label>
               <label>
-                Motif (optionnel)
+                {t('rawMaterials.movementReasonOptional')}
                 <input value={movementReason} onChange={(e) => setMovementReason(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={movementSaving}>{movementSaving ? '...' : 'Enregistrer'}</button>
-                <button type="button" className="secondary" onClick={() => setMovementFor(null)}>Annuler</button>
+                <button type="submit" disabled={movementSaving}>{movementSaving ? '...' : t('common.save')}</button>
+                <button type="button" className="secondary" onClick={() => setMovementFor(null)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

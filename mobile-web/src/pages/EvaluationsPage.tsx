@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { createEvaluation, deleteEvaluation, listEvaluations, updateEvaluation } from '../api/evaluations';
 import { listEmployees } from '../api/employees';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Employee, Evaluation } from '../types/models';
 
 export function EvaluationsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'rh.update');
   const canDelete = hasPermission(user, 'rh.delete');
@@ -75,36 +77,35 @@ export function EvaluationsPage() {
   };
 
   const handleDelete = async (evaluation: Evaluation) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteEvaluation(evaluation.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
   return (
     <div>
       <div className="page-header">
-        <h1>Évaluations</h1>
-        <button onClick={openCreate}>+ Nouvelle évaluation</button>
+        <h1>{t('evaluations.title')}</h1>
+        <button onClick={openCreate}>{t('evaluations.newEvaluation')}</button>
       </div>
 
       {deleteError && <p className="error">{deleteError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Employé</th>
-              <th>Date</th>
-              <th>Note</th>
-              <th>Remarques</th>
+              <th>{t('common.employee')}</th>
+              <th>{t('common.date')}</th>
+              <th>{t('evaluations.score')}</th>
+              <th>{t('evaluations.notes')}</th>
               <th></th>
             </tr>
           </thead>
@@ -116,8 +117,8 @@ export function EvaluationsPage() {
                 <td>{ev.score ?? '—'}</td>
                 <td>{ev.notes ?? '—'}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(ev)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(ev)}>Supprimer</button>}
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(ev)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(ev)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -128,32 +129,32 @@ export function EvaluationsPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? "Modifier l'évaluation" : 'Nouvelle évaluation'}</h2>
+            <h2>{editing ? t('common.edit') : t('evaluations.newEvaluationModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Employé
+                {t('common.employee')}
                 <select value={employeeId} onChange={(e) => setEmployeeId(Number(e.target.value))} required>
-                  <option value="">-- Choisir --</option>
+                  <option value="">{t('common.choose')}</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
                 </select>
               </label>
               <label>
-                Date
+                {t('common.date')}
                 <input type="date" value={evaluationDate} onChange={(e) => setEvaluationDate(e.target.value)} required />
               </label>
               <label>
-                Note (0-20)
+                {t('evaluations.score')}
                 <input type="number" min={0} max={20} value={score} onChange={(e) => setScore(e.target.value)} />
               </label>
               <label>
-                Remarques
+                {t('evaluations.notes')}
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import {
   createProductionOrder,
   deleteProductionOrder,
@@ -11,13 +11,8 @@ import {
 import { listProducts } from '../api/products';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Product, ProductionCostSummary, ProductionOrder, StockWarning } from '../types/models';
-
-const statusLabel: Record<ProductionOrder['status'], string> = {
-  planifie: 'Planifié',
-  en_cours: 'En cours',
-  termine: 'Terminé',
-};
 
 const statusColor = (status: ProductionOrder['status']) => {
   if (status === 'termine') return 'var(--success)';
@@ -26,6 +21,7 @@ const statusColor = (status: ProductionOrder['status']) => {
 };
 
 export function ProductionOrdersPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'production.update');
   const canDelete = hasPermission(user, 'production.delete');
@@ -114,50 +110,48 @@ export function ProductionOrdersPage() {
       setEditingOrder(null);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setEditError((message as string) ?? 'Modification impossible.');
+      setEditError(extractErrorMessage(err, t('common.saveError')));
     }
   };
 
   const handleDelete = async (order: ProductionOrder) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setActionError(null);
     try {
       await deleteProductionOrder(order.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setActionError((message as string) ?? 'Suppression impossible.');
+      setActionError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
   return (
     <div>
       <div className="page-header">
-        <h1>Ordres de fabrication</h1>
-        <button onClick={() => setShowForm(true)}>+ Nouvel ordre</button>
+        <h1>{t('productionOrders.title')}</h1>
+        <button onClick={() => setShowForm(true)}>{t('productionOrders.newOrder')}</button>
       </div>
 
       {actionError && <p className="error">{actionError}</p>}
 
       {lastWarnings && (
         <p className="error">
-          Stock de matières premières insuffisant pour cet ordre :{' '}
-          {lastWarnings.map((w) => `${w.raw_material_name} (besoin ${w.required}, disponible ${w.available})`).join(', ')}.
-          L'ordre a été créé mais ne pourra pas démarrer tant que le stock n'est pas réapprovisionné.
+          {t('productionOrders.insufficientStockWarning', {
+            details: lastWarnings.map((w) => `${w.raw_material_name} (${w.required}/${w.available})`).join(', '),
+          })}
         </p>
       )}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Produit</th>
-              <th>Quantité</th>
-              <th>Statut</th>
-              <th>Coût</th>
+              <th>{t('common.product')}</th>
+              <th>{t('common.quantity')}</th>
+              <th>{t('common.status')}</th>
+              <th>{t('productionOrders.cost')}</th>
               <th></th>
             </tr>
           </thead>
@@ -166,26 +160,26 @@ export function ProductionOrdersPage() {
               <tr key={o.id}>
                 <td>{o.product?.name}</td>
                 <td>{o.quantity_to_produce}</td>
-                <td><span className="badge" style={{ color: statusColor(o.status) }}>{statusLabel[o.status]}</span></td>
+                <td><span className="badge" style={{ color: statusColor(o.status) }}>{t(`productionOrders.status.${o.status}`)}</span></td>
                 <td>
                   {costFor[o.id] ? (
-                    <span>{costFor[o.id].total} {costFor[o.id].estimated && '(estimé)'}</span>
+                    <span>{costFor[o.id].total} {costFor[o.id].estimated && t('productionOrders.estimated')}</span>
                   ) : (
-                    <button className="secondary" onClick={() => handleShowCost(o)}>Voir</button>
+                    <button className="secondary" onClick={() => handleShowCost(o)}>{t('common.view')}</button>
                   )}
                 </td>
                 <td style={{ display: 'flex', gap: 8 }}>
                   {o.status === 'planifie' && (
-                    <button className="secondary" onClick={() => handleStart(o)}>Démarrer</button>
+                    <button className="secondary" onClick={() => handleStart(o)}>{t('productionOrders.start')}</button>
                   )}
                   {o.status === 'en_cours' && (
-                    <button className="secondary" onClick={() => setCompletingId(o.id)}>Terminer</button>
+                    <button className="secondary" onClick={() => setCompletingId(o.id)}>{t('productionOrders.complete')}</button>
                   )}
                   {canUpdate && o.status === 'planifie' && (
-                    <button className="secondary" onClick={() => openEditQuantity(o)}>Modifier</button>
+                    <button className="secondary" onClick={() => openEditQuantity(o)}>{t('common.edit')}</button>
                   )}
                   {canDelete && o.status === 'planifie' && (
-                    <button className="secondary" onClick={() => handleDelete(o)}>Supprimer</button>
+                    <button className="secondary" onClick={() => handleDelete(o)}>{t('common.delete')}</button>
                   )}
                 </td>
               </tr>
@@ -197,27 +191,27 @@ export function ProductionOrdersPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouvel ordre de fabrication</h2>
+            <h2>{t('productionOrders.newOrderModalTitle')}</h2>
             <form onSubmit={handleCreate}>
               <label>
-                Produit
+                {t('common.product')}
                 <select value={productId} onChange={(e) => setProductId(Number(e.target.value))} required>
-                  <option value="">-- Choisir --</option>
+                  <option value="">{t('common.choose')}</option>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               </label>
               <label>
-                Quantité à produire
+                {t('productionOrders.quantityToProduce')}
                 <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
               </label>
               <p style={{ fontSize: '0.85em', color: 'var(--text-muted)' }}>
-                Le produit doit avoir une nomenclature définie (menu « Nomenclature (BOM) ») avant de créer un ordre.
+                {t('productionOrders.bomHint')}
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -227,19 +221,19 @@ export function ProductionOrdersPage() {
       {completingId !== null && (
         <div className="modal-backdrop" onClick={() => setCompletingId(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Terminer l'ordre de fabrication</h2>
+            <h2>{t('productionOrders.completeModalTitle')}</h2>
             <form onSubmit={handleComplete}>
               <label>
-                Main d'œuvre
+                {t('productionOrders.laborCost')}
                 <input type="number" step="0.01" min={0} value={laborCost} onChange={(e) => setLaborCost(e.target.value)} />
               </label>
               <label>
-                Charges indirectes
+                {t('productionOrders.overheadCost')}
                 <input type="number" step="0.01" min={0} value={overheadCost} onChange={(e) => setOverheadCost(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit">Confirmer la fin de production</button>
-                <button type="button" className="secondary" onClick={() => setCompletingId(null)}>Annuler</button>
+                <button type="submit">{t('productionOrders.confirmComplete')}</button>
+                <button type="button" className="secondary" onClick={() => setCompletingId(null)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -249,16 +243,16 @@ export function ProductionOrdersPage() {
       {editingOrder && (
         <div className="modal-backdrop" onClick={() => setEditingOrder(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Modifier la quantité — {editingOrder.product?.name}</h2>
+            <h2>{t('productionOrders.editQuantityModalTitle', { name: editingOrder.product?.name })}</h2>
             {editError && <p className="error">{editError}</p>}
             <form onSubmit={handleEditQuantity}>
               <label>
-                Quantité à produire
+                {t('productionOrders.quantityToProduce')}
                 <input type="number" min={1} value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit">Enregistrer</button>
-                <button type="button" className="secondary" onClick={() => setEditingOrder(null)}>Annuler</button>
+                <button type="submit">{t('common.save')}</button>
+                <button type="button" className="secondary" onClick={() => setEditingOrder(null)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

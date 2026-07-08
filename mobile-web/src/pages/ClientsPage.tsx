@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { isAxiosError } from 'axios';
 import { createClient, deleteClient, listClients, updateClient } from '../api/clients';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Client } from '../types/models';
 
 export function ClientsPage() {
@@ -69,8 +69,7 @@ export function ClientsPage() {
       await deleteClient(client.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 

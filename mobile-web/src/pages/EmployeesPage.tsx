@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { createEmployee, deleteEmployee, listEmployees, updateEmployee } from '../api/employees';
 import { listUsers } from '../api/users';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Employee, User } from '../types/models';
 
 export function EmployeesPage() {
+  const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const canUpdate = hasPermission(currentUser, 'rh.update');
   const canDelete = hasPermission(currentUser, 'rh.delete');
@@ -75,36 +77,35 @@ export function EmployeesPage() {
   };
 
   const handleDelete = async (employee: Employee) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteEmployee(employee.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
   return (
     <div>
       <div className="page-header">
-        <h1>Employés</h1>
-        <button onClick={openCreate}>+ Nouvel employé</button>
+        <h1>{t('employees.title')}</h1>
+        <button onClick={openCreate}>{t('employees.newEmployee')}</button>
       </div>
 
       {deleteError && <p className="error">{deleteError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Poste</th>
-              <th>Date d'embauche</th>
-              <th>Compte lié</th>
+              <th>{t('common.name')}</th>
+              <th>{t('employees.position')}</th>
+              <th>{t('employees.hireDate')}</th>
+              <th>{t('employees.linkedAccount')}</th>
               <th></th>
             </tr>
           </thead>
@@ -116,9 +117,9 @@ export function EmployeesPage() {
                 <td>{e.hire_date ? new Date(e.hire_date).toLocaleDateString() : ''}</td>
                 <td>{e.user?.name ?? '—'}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  <Link to={`/rh/employees/${e.id}`}>Voir la fiche</Link>
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(e)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(e)}>Supprimer</button>}
+                  <Link to={`/rh/employees/${e.id}`}>{t('employees.viewSheet')}</Link>
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(e)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(e)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -129,32 +130,32 @@ export function EmployeesPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? "Modifier l'employé" : 'Nouvel employé'}</h2>
+            <h2>{editing ? t('common.edit') : t('employees.newEmployeeModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               <label>
-                Poste
+                {t('employees.position')}
                 <input value={position} onChange={(e) => setPosition(e.target.value)} />
               </label>
               <label>
-                Date d'embauche
+                {t('employees.hireDate')}
                 <input type="date" value={hireDate} onChange={(e) => setHireDate(e.target.value)} />
               </label>
               <label>
-                Compte utilisateur lié (optionnel)
+                {t('employees.linkedAccountOptional')}
                 <select value={userId} onChange={(e) => setUserId(e.target.value ? Number(e.target.value) : '')}>
-                  <option value="">-- Aucun --</option>
+                  <option value="">{t('users.noRole')}</option>
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>{u.name}</option>
                   ))}
                 </select>
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

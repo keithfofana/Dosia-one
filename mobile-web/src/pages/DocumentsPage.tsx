@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
 import {
@@ -10,15 +11,16 @@ import {
 } from '../api/documents';
 import type { DocumentFile } from '../types/models';
 
-const typeLabels: Record<DocumentFile['type'], string> = {
-  contrat: 'Contrat',
-  facture: 'Facture',
-  rapport: 'Rapport',
-  archive: 'Archive',
-  autre: 'Autre',
-};
-
 export function DocumentsPage() {
+  const { t } = useTranslation();
+  const typeLabels: Record<DocumentFile['type'], string> = {
+    contrat: t('documents.type.contrat'),
+    facture: t('documents.type.facture'),
+    rapport: t('documents.type.rapport'),
+    archive: t('documents.type.archive'),
+    autre: t('documents.type.autre'),
+  };
+
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'documents.update');
   const canDelete = hasPermission(user, 'documents.delete');
@@ -73,7 +75,7 @@ export function DocumentsPage() {
   };
 
   const handleDelete = async (doc: DocumentFile) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer ce document ? Cette action est irréversible.')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     await deleteDocument(doc.id);
     load();
   };
@@ -81,20 +83,20 @@ export function DocumentsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Documents</h1>
-        <button onClick={openCreate}>+ Nouveau document</button>
+        <h1>{t('documents.title')}</h1>
+        <button onClick={openCreate}>{t('documents.newDocument')}</button>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Titre</th>
-              <th>Type</th>
-              <th>Ajouté par</th>
-              <th>Date</th>
+              <th>{t('documents.titleField')}</th>
+              <th>{t('common.type')}</th>
+              <th>{t('documents.uploadedBy')}</th>
+              <th>{t('common.date')}</th>
               <th></th>
             </tr>
           </thead>
@@ -106,9 +108,9 @@ export function DocumentsPage() {
                 <td>{doc.uploaded_by?.name ?? '—'}</td>
                 <td>{new Date(doc.created_at).toLocaleDateString()}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  <button className="secondary" onClick={() => downloadDocument(doc.id, doc.title)}>Télécharger</button>
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(doc)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(doc)}>Supprimer</button>}
+                  <button className="secondary" onClick={() => downloadDocument(doc.id, doc.title)}>{t('common.download')}</button>
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(doc)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(doc)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -119,29 +121,29 @@ export function DocumentsPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Modifier le document' : 'Nouveau document'}</h2>
+            <h2>{editing ? t('common.edit') : t('documents.newDocumentModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Titre
+                {t('documents.titleField')}
                 <input value={title} onChange={(e) => setTitle(e.target.value)} required />
               </label>
               <label>
-                Type
+                {t('common.type')}
                 <select value={type} onChange={(e) => setType(e.target.value as DocumentFile['type'])}>
-                  <option value="contrat">Contrat</option>
-                  <option value="facture">Facture</option>
-                  <option value="rapport">Rapport</option>
-                  <option value="archive">Archive</option>
-                  <option value="autre">Autre</option>
+                  <option value="contrat">{t('documents.type.contrat')}</option>
+                  <option value="facture">{t('documents.type.facture')}</option>
+                  <option value="rapport">{t('documents.type.rapport')}</option>
+                  <option value="archive">{t('documents.type.archive')}</option>
+                  <option value="autre">{t('documents.type.autre')}</option>
                 </select>
               </label>
               <label>
-                Fichier {editing && '(laisser vide pour conserver le fichier actuel)'}
+                {t('documents.file')} {editing && t('documents.fileKeepHint')}
                 <input type="file" ref={fileInputRef} required={!editing} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Enregistrer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : t('common.save')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

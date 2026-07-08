@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { confirmTwoFactor, disableTwoFactor, enableTwoFactor } from '../api/twoFactor';
 import { listSessions, revokeSession } from '../api/sessions';
 import { updateLocale } from '../api/profile';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '../i18n';
+import { extractErrorMessage } from '../utils/errors';
 import type { SessionInfo, TwoFactorSetup } from '../types/models';
 
 const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
@@ -14,15 +14,6 @@ const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   ar: 'العربية',
   sw: 'Kiswahili',
 };
-
-function describeError(err: unknown, fallback: string): string {
-  if (isAxiosError(err)) {
-    const errors = err.response?.data?.errors as Record<string, string[]> | undefined;
-    const firstMessage = errors ? Object.values(errors)[0]?.[0] : undefined;
-    return firstMessage ?? err.response?.data?.message ?? fallback;
-  }
-  return fallback;
-}
 
 export function SecurityPage() {
   const { t } = useTranslation();
@@ -67,7 +58,7 @@ export function SecurityPage() {
       setSetup(null);
       setConfirmCode('');
     } catch (err) {
-      setConfirmError(describeError(err, 'Code invalide.'));
+      setConfirmError(extractErrorMessage(err, t('security.invalidCode')));
     } finally {
       setConfirmSaving(false);
     }
@@ -83,7 +74,7 @@ export function SecurityPage() {
       setShowDisableForm(false);
       setDisablePassword('');
     } catch (err) {
-      setDisableError(describeError(err, 'Mot de passe incorrect.'));
+      setDisableError(extractErrorMessage(err, t('security.incorrectPassword')));
     } finally {
       setDisableSaving(false);
     }
@@ -113,7 +104,7 @@ export function SecurityPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Sécurité</h1>
+        <h1>{t('security.title')}</h1>
       </div>
 
       <h2>{t('language.title')}</h2>
@@ -133,16 +124,16 @@ export function SecurityPage() {
         {localeSaved && <p style={{ color: 'var(--success)' }}>{t('language.saved')}</p>}
       </div>
 
-      <h2>Authentification à deux facteurs (2FA)</h2>
+      <h2>{t('security.twoFactorTitle')}</h2>
       {user?.two_factor_enabled ? (
         <div>
-          <p>Le 2FA est <strong style={{ color: 'var(--success)' }}>activé</strong> sur ton compte.</p>
+          <p>{t('security.enabledPrefix')} <strong style={{ color: 'var(--success)' }}>{t('security.enabledWord')}</strong> {t('security.enabledSuffix')}</p>
           {!showDisableForm ? (
-            <button className="secondary" onClick={() => setShowDisableForm(true)}>Désactiver le 2FA</button>
+            <button className="secondary" onClick={() => setShowDisableForm(true)}>{t('security.disable2fa')}</button>
           ) : (
             <form onSubmit={handleDisable} style={{ maxWidth: 360 }}>
               <label>
-                Mot de passe (pour confirmer la désactivation)
+                {t('security.passwordConfirmDisable')}
                 <input
                   type="password"
                   value={disablePassword}
@@ -152,26 +143,26 @@ export function SecurityPage() {
               </label>
               {disableError && <p className="error">{disableError}</p>}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={disableSaving}>{disableSaving ? '...' : 'Confirmer la désactivation'}</button>
-                <button type="button" className="secondary" onClick={() => setShowDisableForm(false)}>Annuler</button>
+                <button type="submit" disabled={disableSaving}>{disableSaving ? '...' : t('security.confirmDisableSubmit')}</button>
+                <button type="button" className="secondary" onClick={() => setShowDisableForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           )}
         </div>
       ) : (
         <div>
-          <p>Le 2FA est <strong>désactivé</strong>. Active-le pour sécuriser ton compte avec une application d'authentification (Google Authenticator, Authy...).</p>
+          <p>{t('security.disabledPrefix')} <strong>{t('security.disabledWord')}</strong>. {t('security.disabledSuffix')}</p>
           {!setup ? (
-            <button onClick={handleStartEnable}>Activer le 2FA</button>
+            <button onClick={handleStartEnable}>{t('security.enable2fa')}</button>
           ) : (
             <div style={{ maxWidth: 360 }}>
-              <p>1. Scanne ce QR code avec ton application d'authentification :</p>
-              <img src={setup.qr_code} alt="QR code 2FA" style={{ background: 'white', padding: 8, borderRadius: 8 }} />
-              <p>Ou saisis manuellement cette clé : <code>{setup.secret}</code></p>
-              <p>2. Saisis le code à 6 chiffres affiché par l'application pour confirmer :</p>
+              <p>{t('security.scanQr')}</p>
+              <img src={setup.qr_code} alt={t('security.qrAlt')} style={{ background: 'white', padding: 8, borderRadius: 8 }} />
+              <p>{t('security.orEnterKey')} <code>{setup.secret}</code></p>
+              <p>{t('security.enterCodeToConfirm')}</p>
               <form onSubmit={handleConfirm}>
                 <label>
-                  Code à 6 chiffres
+                  {t('security.sixDigitCode')}
                   <input
                     value={confirmCode}
                     onChange={(e) => setConfirmCode(e.target.value)}
@@ -182,8 +173,8 @@ export function SecurityPage() {
                 </label>
                 {confirmError && <p className="error">{confirmError}</p>}
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="submit" disabled={confirmSaving}>{confirmSaving ? '...' : 'Confirmer et activer'}</button>
-                  <button type="button" className="secondary" onClick={() => setSetup(null)}>Annuler</button>
+                  <button type="submit" disabled={confirmSaving}>{confirmSaving ? '...' : t('security.confirmAndEnable')}</button>
+                  <button type="button" className="secondary" onClick={() => setSetup(null)}>{t('common.cancel')}</button>
                 </div>
               </form>
             </div>
@@ -191,28 +182,28 @@ export function SecurityPage() {
         </div>
       )}
 
-      <h2>Sessions actives</h2>
+      <h2>{t('security.activeSessions')}</h2>
       {sessionsLoading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Appareil</th>
-              <th>Dernière activité</th>
-              <th>Connexion</th>
+              <th>{t('security.device')}</th>
+              <th>{t('security.lastActivity')}</th>
+              <th>{t('security.loginDate')}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {sessions.map((s) => (
               <tr key={s.id}>
-                <td>{s.name} {s.is_current && <span className="badge">Session actuelle</span>}</td>
+                <td>{s.name} {s.is_current && <span className="badge">{t('security.currentSession')}</span>}</td>
                 <td>{s.last_used_at ? new Date(s.last_used_at).toLocaleString() : '—'}</td>
                 <td>{new Date(s.created_at).toLocaleString()}</td>
                 <td>
                   {!s.is_current && (
-                    <button className="secondary" onClick={() => handleRevoke(s)}>Révoquer</button>
+                    <button className="secondary" onClick={() => handleRevoke(s)}>{t('security.revoke')}</button>
                   )}
                 </td>
               </tr>

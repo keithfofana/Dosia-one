@@ -1,11 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { createSupplier, deleteSupplier, listSuppliers, updateSupplier } from '../api/suppliers';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Supplier } from '../types/models';
 
 export function SuppliersPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'achats.update');
   const canDelete = hasPermission(user, 'achats.delete');
@@ -60,35 +62,34 @@ export function SuppliersPage() {
   };
 
   const handleDelete = async (supplier: Supplier) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setDeleteError(null);
     try {
       await deleteSupplier(supplier.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setDeleteError((message as string) ?? 'Suppression impossible.');
+      setDeleteError(extractErrorMessage(err, t('common.deleteError')));
     }
   };
 
   return (
     <div>
       <div className="page-header">
-        <h1>Fournisseurs</h1>
-        <button onClick={openCreate}>+ Nouveau fournisseur</button>
+        <h1>{t('suppliers.title')}</h1>
+        <button onClick={openCreate}>{t('suppliers.newSupplier')}</button>
       </div>
 
       {deleteError && <p className="error">{deleteError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Téléphone</th>
-              <th>Email</th>
+              <th>{t('common.name')}</th>
+              <th>{t('common.phone')}</th>
+              <th>{t('common.email')}</th>
               <th></th>
             </tr>
           </thead>
@@ -99,8 +100,8 @@ export function SuppliersPage() {
                 <td>{s.phone}</td>
                 <td>{s.email}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
-                  {canUpdate && <button className="secondary" onClick={() => openEdit(s)}>Modifier</button>}
-                  {canDelete && <button className="secondary" onClick={() => handleDelete(s)}>Supprimer</button>}
+                  {canUpdate && <button className="secondary" onClick={() => openEdit(s)}>{t('common.edit')}</button>}
+                  {canDelete && <button className="secondary" onClick={() => handleDelete(s)}>{t('common.delete')}</button>}
                 </td>
               </tr>
             ))}
@@ -111,23 +112,23 @@ export function SuppliersPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}</h2>
+            <h2>{editing ? t('common.edit') : t('suppliers.newSupplierModalTitle')}</h2>
             <form onSubmit={handleSubmit}>
               <label>
-                Nom
+                {t('common.name')}
                 <input value={name} onChange={(e) => setName(e.target.value)} required />
               </label>
               <label>
-                Téléphone
+                {t('common.phone')}
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} />
               </label>
               <label>
-                Email
+                {t('common.email')}
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>

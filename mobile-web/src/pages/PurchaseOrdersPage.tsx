@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isAxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import {
   cancelPurchaseOrder,
   createPurchaseOrder,
@@ -15,6 +15,7 @@ import { listSuppliers } from '../api/suppliers';
 import { listProducts } from '../api/products';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Product, PurchaseOrder, Supplier } from '../types/models';
 
 const statusColor = (status: PurchaseOrder['status']) => {
@@ -26,6 +27,7 @@ const statusColor = (status: PurchaseOrder['status']) => {
 const editable = (status: PurchaseOrder['status']) => status === 'brouillon' || status === 'envoyee';
 
 export function PurchaseOrdersPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canUpdate = hasPermission(user, 'achats.update');
   const canDelete = hasPermission(user, 'achats.delete');
@@ -104,34 +106,31 @@ export function PurchaseOrdersPage() {
       setShowForm(false);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setFormError((message as string) ?? 'Enregistrement impossible.');
+      setFormError(extractErrorMessage(err, t('common.saveError')));
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = async (order: PurchaseOrder) => {
-    if (!window.confirm('Confirmer l\'annulation de cette commande ?')) return;
+    if (!window.confirm(t('purchaseOrders.confirmCancelOrder'))) return;
     setActionError(null);
     try {
       await cancelPurchaseOrder(order.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setActionError((message as string) ?? 'Annulation impossible.');
+      setActionError(extractErrorMessage(err, t('common.cancelError')));
     }
   };
 
   const handleDelete = async (order: PurchaseOrder) => {
-    if (!window.confirm('Confirmer la suppression ?')) return;
+    if (!window.confirm(t('common.confirmDelete'))) return;
     setActionError(null);
     try {
       await deletePurchaseOrder(order.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setActionError((message as string) ?? 'Suppression impossible : annulez la commande à la place.');
+      setActionError(extractErrorMessage(err, t('purchaseOrders.deleteBlocked')));
     }
   };
 
@@ -166,22 +165,22 @@ export function PurchaseOrdersPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Commandes fournisseurs</h1>
-        <button onClick={openCreate}>+ Nouvelle commande</button>
+        <h1>{t('purchaseOrders.title')}</h1>
+        <button onClick={openCreate}>{t('purchaseOrders.newOrder')}</button>
       </div>
 
       {actionError && <p className="error">{actionError}</p>}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Numéro</th>
-              <th>Fournisseur</th>
-              <th>Statut</th>
-              <th>Total</th>
+              <th>{t('quotes.number')}</th>
+              <th>{t('purchaseOrders.supplier')}</th>
+              <th>{t('common.status')}</th>
+              <th>{t('common.total')}</th>
               <th></th>
             </tr>
           </thead>
@@ -190,20 +189,20 @@ export function PurchaseOrdersPage() {
               <tr key={o.id}>
                 <td>{o.number}</td>
                 <td>{o.supplier?.name}</td>
-                <td><span className="badge" style={{ color: statusColor(o.status) }}>{o.status}</span></td>
+                <td><span className="badge" style={{ color: statusColor(o.status) }}>{t(`purchaseOrders.status.${o.status}`)}</span></td>
                 <td>{o.total}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
                   {(o.status === 'brouillon' || o.status === 'envoyee' || o.status === 'recue_partiel') && (
-                    <button className="secondary" onClick={() => openReceive(o)}>Réceptionner</button>
+                    <button className="secondary" onClick={() => openReceive(o)}>{t('purchaseOrders.receive')}</button>
                   )}
                   {canUpdate && editable(o.status) && (
-                    <button className="secondary" onClick={() => openEdit(o)}>Modifier</button>
+                    <button className="secondary" onClick={() => openEdit(o)}>{t('common.edit')}</button>
                   )}
                   {canUpdate && o.status !== 'annulee' && o.status !== 'recue' && (
-                    <button className="secondary" onClick={() => handleCancel(o)}>Annuler</button>
+                    <button className="secondary" onClick={() => handleCancel(o)}>{t('common.cancel')}</button>
                   )}
                   {canDelete && editable(o.status) && (
-                    <button className="secondary" onClick={() => handleDelete(o)}>Supprimer</button>
+                    <button className="secondary" onClick={() => handleDelete(o)}>{t('common.delete')}</button>
                   )}
                 </td>
               </tr>
@@ -215,24 +214,24 @@ export function PurchaseOrdersPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editing ? 'Modifier la commande' : 'Nouvelle commande fournisseur'}</h2>
+            <h2>{editing ? t('common.edit') : t('purchaseOrders.newOrderModalTitle')}</h2>
             {formError && <p className="error">{formError}</p>}
             <form onSubmit={handleSubmit}>
               <label>
-                Fournisseur
+                {t('purchaseOrders.supplier')}
                 <select value={supplierId} onChange={(e) => setSupplierId(Number(e.target.value))} required>
-                  <option value="">-- Choisir --</option>
+                  <option value="">{t('common.choose')}</option>
                   {suppliers.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
               </label>
 
-              <h3>Lignes</h3>
+              <h3>{t('common.lines')}</h3>
               {items.map((item, idx) => (
                 <div className="item-row" key={idx}>
                   <label>
-                    Produit
+                    {t('common.product')}
                     <select value={item.product_id} onChange={(e) => handleProductChange(idx, Number(e.target.value))}>
                       <option value={0}>--</option>
                       {products.map((p) => (
@@ -241,21 +240,21 @@ export function PurchaseOrdersPage() {
                     </select>
                   </label>
                   <label>
-                    Qté
+                    {t('common.quantity')}
                     <input type="number" min={1} value={item.quantity} onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })} />
                   </label>
                   <label>
-                    Prix unit.
+                    {t('common.unitPrice')}
                     <input type="number" step="0.01" value={item.unit_price} onChange={(e) => updateItem(idx, { unit_price: Number(e.target.value) })} />
                   </label>
                   <button type="button" className="secondary" onClick={() => removeItem(idx)}>×</button>
                 </div>
               ))}
-              <button type="button" className="secondary" onClick={addItem}>+ Ligne</button>
+              <button type="button" className="secondary" onClick={addItem}>{t('common.addLine')}</button>
 
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
-                <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? t('common.save') : t('common.create')}</button>
+                <button type="button" className="secondary" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
               </div>
             </form>
           </div>
@@ -265,7 +264,7 @@ export function PurchaseOrdersPage() {
       {receivingOrder && (
         <div className="modal-backdrop" onClick={() => setReceivingOrder(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Réception — {receivingOrder.number}</h2>
+            <h2>{t('purchaseOrders.receptionTitle', { number: receivingOrder.number })}</h2>
             {receivingOrder.purchase_order_items?.map((item) => {
               const alreadyReceived = receivingOrder.goods_receipts
                 ?.filter((g) => g.product_id === item.product_id)
@@ -274,7 +273,7 @@ export function PurchaseOrdersPage() {
 
               return (
                 <label key={item.id}>
-                  {item.product?.name} (commandé : {item.quantity}, restant : {remaining})
+                  {item.product?.name} {t('purchaseOrders.orderedRemaining', { ordered: item.quantity, remaining })}
                   <input
                     type="number"
                     min={0}
@@ -286,8 +285,8 @@ export function PurchaseOrdersPage() {
               );
             })}
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button onClick={handleReceive} disabled={saving}>{saving ? '...' : 'Confirmer la réception'}</button>
-              <button type="button" className="secondary" onClick={() => setReceivingOrder(null)}>Annuler</button>
+              <button onClick={handleReceive} disabled={saving}>{saving ? '...' : t('purchaseOrders.confirmReception')}</button>
+              <button type="button" className="secondary" onClick={() => setReceivingOrder(null)}>{t('common.cancel')}</button>
             </div>
           </div>
         </div>

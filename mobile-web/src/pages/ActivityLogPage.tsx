@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listActivityLog, triggerBackup } from '../api/settings';
 import { listUsers } from '../api/users';
 import type { ActivityLogEntry, User } from '../types/models';
@@ -6,6 +7,7 @@ import type { ActivityLogEntry, User } from '../types/models';
 const modules = ['ventes', 'stock', 'achats', 'crm', 'comptabilite', 'tresorerie', 'rh', 'production', 'documents', 'parametres'];
 
 export function ActivityLogPage() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,9 +42,9 @@ export function ActivityLogPage() {
       a.download = `backup-${new Date().toISOString().slice(0, 10)}.sql`;
       a.click();
       window.URL.revokeObjectURL(url);
-      setBackupStatus('Sauvegarde téléchargée.');
+      setBackupStatus(t('activityLog.backupDownloaded'));
     } catch {
-      setBackupStatus("Échec de la sauvegarde (pg_dump indisponible sur le serveur ?).");
+      setBackupStatus(t('activityLog.backupFailed'));
     } finally {
       setBackingUp(false);
     }
@@ -51,45 +53,45 @@ export function ActivityLogPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Journal d'activité</h1>
-        <button onClick={handleBackup} disabled={backingUp}>{backingUp ? '...' : '💾 Sauvegarder'}</button>
+        <h1>{t('activityLog.title')}</h1>
+        <button onClick={handleBackup} disabled={backingUp}>{backingUp ? '...' : t('activityLog.backup')}</button>
       </div>
       {backupStatus && <p>{backupStatus}</p>}
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
         <label style={{ minWidth: 200 }}>
-          Utilisateur
+          {t('common.user')}
           <select value={userId} onChange={(e) => setUserId(e.target.value ? Number(e.target.value) : '')}>
-            <option value="">Tous</option>
+            <option value="">{t('activityLog.allUsers')}</option>
             {users.map((u) => (
               <option key={u.id} value={u.id}>{u.name}</option>
             ))}
           </select>
         </label>
         <label style={{ minWidth: 200 }}>
-          Module
+          {t('activityLog.module')}
           <select value={module} onChange={(e) => setModule(e.target.value)}>
-            <option value="">Tous</option>
+            <option value="">{t('activityLog.allModules')}</option>
             {modules.map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>{t(`modules.${m}`, m)}</option>
             ))}
           </select>
         </label>
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : logs.length === 0 ? (
-        <p>Aucune entrée.</p>
+        <p>{t('activityLog.noEntries')}</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Utilisateur</th>
-              <th>Module</th>
-              <th>Action</th>
-              <th>Description</th>
+              <th>{t('common.date')}</th>
+              <th>{t('common.user')}</th>
+              <th>{t('activityLog.module')}</th>
+              <th>{t('activityLog.action')}</th>
+              <th>{t('journalEntries.description')}</th>
             </tr>
           </thead>
           <tbody>
@@ -97,7 +99,7 @@ export function ActivityLogPage() {
               <tr key={log.id}>
                 <td>{new Date(log.created_at).toLocaleString()}</td>
                 <td>{log.user?.name ?? '—'}</td>
-                <td><span className="badge">{log.module}</span></td>
+                <td><span className="badge">{t(`modules.${log.module}`, log.module)}</span></td>
                 <td>{log.action}</td>
                 <td>{log.description}</td>
               </tr>

@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { isAxiosError } from 'axios';
 import { cancelInvoice, deleteInvoice, getInvoice, recordPayment, updateInvoice } from '../api/invoices';
 import { listClients } from '../api/clients';
 import { listProducts } from '../api/products';
@@ -9,6 +8,7 @@ import type { QuoteItemInput } from '../api/quotes';
 import { BackLink } from '../components/BackLink';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from '../utils/permissions';
+import { extractErrorMessage } from '../utils/errors';
 import type { Client, Invoice, Product } from '../types/models';
 
 export function InvoiceDetailPage() {
@@ -96,8 +96,7 @@ export function InvoiceDetailPage() {
       setShowEdit(false);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setEditError((message as string) ?? 'Enregistrement impossible.');
+      setEditError(extractErrorMessage(err, t('common.saveError')));
     } finally {
       setSaving(false);
     }
@@ -111,8 +110,7 @@ export function InvoiceDetailPage() {
       await cancelInvoice(invoice.id);
       load();
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setActionError((message as string) ?? 'Annulation impossible.');
+      setActionError(extractErrorMessage(err, t('common.cancelError')));
     }
   };
 
@@ -124,8 +122,7 @@ export function InvoiceDetailPage() {
       await deleteInvoice(invoice.id);
       navigate('/invoices');
     } catch (err) {
-      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
-      setActionError((message as string) ?? t('invoices.deleteBlocked'));
+      setActionError(extractErrorMessage(err, t('invoices.deleteBlocked')));
     }
   };
 
