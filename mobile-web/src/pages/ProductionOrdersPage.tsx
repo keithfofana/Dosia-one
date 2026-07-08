@@ -1,11 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { isAxiosError } from 'axios';
 import {
   createProductionOrder,
+  deleteProductionOrder,
   getProductionOrderCost,
   listProductionOrders,
+  updateProductionOrderQuantity,
   updateProductionOrderStatus,
 } from '../api/productionOrders';
 import { listProducts } from '../api/products';
+import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/permissions';
 import type { Product, ProductionCostSummary, ProductionOrder, StockWarning } from '../types/models';
 
 const statusLabel: Record<ProductionOrder['status'], string> = {
@@ -21,6 +26,10 @@ const statusColor = (status: ProductionOrder['status']) => {
 };
 
 export function ProductionOrdersPage() {
+  const { user } = useAuth();
+  const canUpdate = hasPermission(user, 'production.update');
+  const canDelete = hasPermission(user, 'production.delete');
+
   const [orders, setOrders] = useState<ProductionOrder[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,10 +38,15 @@ export function ProductionOrdersPage() {
   const [quantity, setQuantity] = useState('1');
   const [saving, setSaving] = useState(false);
   const [lastWarnings, setLastWarnings] = useState<StockWarning[] | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const [completingId, setCompletingId] = useState<number | null>(null);
   const [laborCost, setLaborCost] = useState('0');
   const [overheadCost, setOverheadCost] = useState('0');
+
+  const [editingOrder, setEditingOrder] = useState<ProductionOrder | null>(null);
+  const [editQuantity, setEditQuantity] = useState('1');
+  const [editError, setEditError] = useState<string | null>(null);
 
   const [costFor, setCostFor] = useState<Record<number, ProductionCostSummary>>({});
 
@@ -85,12 +99,46 @@ export function ProductionOrdersPage() {
     setCostFor((prev) => ({ ...prev, [order.id]: cost }));
   };
 
+  const openEditQuantity = (order: ProductionOrder) => {
+    setEditingOrder(order);
+    setEditQuantity(String(order.quantity_to_produce));
+    setEditError(null);
+  };
+
+  const handleEditQuantity = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingOrder) return;
+    setEditError(null);
+    try {
+      await updateProductionOrderQuantity(editingOrder.id, Number(editQuantity));
+      setEditingOrder(null);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setEditError((message as string) ?? 'Modification impossible.');
+    }
+  };
+
+  const handleDelete = async (order: ProductionOrder) => {
+    if (!window.confirm('Confirmer la suppression ?')) return;
+    setActionError(null);
+    try {
+      await deleteProductionOrder(order.id);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setActionError((message as string) ?? 'Suppression impossible.');
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
         <h1>Ordres de fabrication</h1>
         <button onClick={() => setShowForm(true)}>+ Nouvel ordre</button>
       </div>
+
+      {actionError && <p className="error">{actionError}</p>}
 
       {lastWarnings && (
         <p className="error">
@@ -132,6 +180,12 @@ export function ProductionOrdersPage() {
                   )}
                   {o.status === 'en_cours' && (
                     <button className="secondary" onClick={() => setCompletingId(o.id)}>Terminer</button>
+                  )}
+                  {canUpdate && o.status === 'planifie' && (
+                    <button className="secondary" onClick={() => openEditQuantity(o)}>Modifier</button>
+                  )}
+                  {canDelete && o.status === 'planifie' && (
+                    <button className="secondary" onClick={() => handleDelete(o)}>Supprimer</button>
                   )}
                 </td>
               </tr>
@@ -186,6 +240,25 @@ export function ProductionOrdersPage() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="submit">Confirmer la fin de production</button>
                 <button type="button" className="secondary" onClick={() => setCompletingId(null)}>Annuler</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingOrder && (
+        <div className="modal-backdrop" onClick={() => setEditingOrder(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Modifier la quantité — {editingOrder.product?.name}</h2>
+            {editError && <p className="error">{editError}</p>}
+            <form onSubmit={handleEditQuantity}>
+              <label>
+                Quantité à produire
+                <input type="number" min={1} value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} required />
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="submit">Enregistrer</button>
+                <button type="button" className="secondary" onClick={() => setEditingOrder(null)}>Annuler</button>
               </div>
             </form>
           </div>

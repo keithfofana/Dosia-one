@@ -33,6 +33,8 @@ import { RawMaterialsPage } from './pages/RawMaterialsPage';
 import { BillOfMaterialsPage } from './pages/BillOfMaterialsPage';
 import { ProductionOrdersPage } from './pages/ProductionOrdersPage';
 import { SecurityPage } from './pages/SecurityPage';
+import { StockMovementsPage } from './pages/StockMovementsPage';
+import { DocumentsPage } from './pages/DocumentsPage';
 
 function App() {
   return (
@@ -53,6 +55,15 @@ function App() {
           <Route path="clients" element={<ClientsPage />} />
           <Route path="clients/:id" element={<ClientDetailPage />} />
           <Route path="products" element={<ProductsPage />} />
+          <Route path="stock-movements" element={<StockMovementsPage />} />
+          <Route
+            path="documents"
+            element={
+              <PermissionRoute permission="documents.view">
+                <DocumentsPage />
+              </PermissionRoute>
+            }
+          />
           <Route path="quotes" element={<QuotesPage />} />
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="invoices/:id" element={<InvoiceDetailPage />} />

@@ -8,6 +8,7 @@ use App\Services\AccountingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SalaryController extends Controller
 {
@@ -35,6 +36,12 @@ class SalaryController extends Controller
         $data = $request->validated();
         $wasPaid = $salary->status === 'paye';
 
+        if ($wasPaid && (isset($data['amount']) || isset($data['period_month']) || ($data['status'] ?? 'paye') !== 'paye')) {
+            throw ValidationException::withMessages([
+                'status' => ["Ce salaire est déjà payé et a généré une écriture comptable : le montant, le mois et le statut ne peuvent plus être modifiés."],
+            ]);
+        }
+
         DB::transaction(function () use ($data, $salary, $wasPaid) {
             $salary->update($data);
 
@@ -48,6 +55,12 @@ class SalaryController extends Controller
 
     public function destroy(Salary $salary): JsonResponse
     {
+        if ($salary->status === 'paye') {
+            throw ValidationException::withMessages([
+                'status' => ['Ce salaire est déjà payé et a généré une écriture comptable : il ne peut pas être supprimé.'],
+            ]);
+        }
+
         $salary->delete();
 
         return response()->json(null, 204);

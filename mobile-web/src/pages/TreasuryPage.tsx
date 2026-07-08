@@ -1,27 +1,42 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { isAxiosError } from 'axios';
 import {
   createBankAccount,
   createCashRegister,
+  deleteBankAccount,
+  deleteCashRegister,
   depositToCashRegister,
   getTreasuryForecast,
   listBankAccounts,
   listCashRegisters,
+  updateBankAccount,
+  updateCashRegister,
   withdrawFromCashRegister,
 } from '../api/treasury';
+import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/permissions';
 import type { BankAccount, CashRegister, TreasuryForecast } from '../types/models';
 
 export function TreasuryPage() {
+  const { user } = useAuth();
+  const canUpdate = hasPermission(user, 'tresorerie.update');
+  const canDelete = hasPermission(user, 'tresorerie.delete');
+
   const [forecast, setForecast] = useState<TreasuryForecast | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [showBankForm, setShowBankForm] = useState(false);
+  const [editingBank, setEditingBank] = useState<BankAccount | null>(null);
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
+  const [bankError, setBankError] = useState<string | null>(null);
 
   const [showCashForm, setShowCashForm] = useState(false);
+  const [editingCash, setEditingCash] = useState<CashRegister | null>(null);
   const [cashName, setCashName] = useState('');
+  const [cashError, setCashError] = useState<string | null>(null);
 
   const [movementRegister, setMovementRegister] = useState<CashRegister | null>(null);
   const [movementType, setMovementType] = useState<'deposit' | 'withdraw'>('deposit');
@@ -29,6 +44,7 @@ export function TreasuryPage() {
   const [movementReason, setMovementReason] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -43,30 +59,97 @@ export function TreasuryPage() {
 
   useEffect(load, []);
 
-  const handleCreateBank = async (e: FormEvent) => {
+  const openCreateBank = () => {
+    setEditingBank(null);
+    setBankError(null);
+    setBankName('');
+    setAccountNumber('');
+    setShowBankForm(true);
+  };
+
+  const openEditBank = (account: BankAccount) => {
+    setEditingBank(account);
+    setBankError(null);
+    setBankName(account.bank_name);
+    setAccountNumber(account.account_number);
+    setShowBankForm(true);
+  };
+
+  const handleSubmitBank = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setBankError(null);
     try {
-      await createBankAccount({ bank_name: bankName, account_number: accountNumber });
+      if (editingBank) {
+        await updateBankAccount(editingBank.id, { bank_name: bankName, account_number: accountNumber });
+      } else {
+        await createBankAccount({ bank_name: bankName, account_number: accountNumber });
+      }
       setShowBankForm(false);
-      setBankName('');
-      setAccountNumber('');
       load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setBankError((message as string) ?? 'Enregistrement impossible.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCreateCash = async (e: FormEvent) => {
+  const handleDeleteBank = async (account: BankAccount) => {
+    if (!window.confirm('Confirmer la suppression ?')) return;
+    setDeleteError(null);
+    try {
+      await deleteBankAccount(account.id);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setDeleteError((message as string) ?? 'Suppression impossible.');
+    }
+  };
+
+  const openCreateCash = () => {
+    setEditingCash(null);
+    setCashError(null);
+    setCashName('');
+    setShowCashForm(true);
+  };
+
+  const openEditCash = (register: CashRegister) => {
+    setEditingCash(register);
+    setCashError(null);
+    setCashName(register.name);
+    setShowCashForm(true);
+  };
+
+  const handleSubmitCash = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setCashError(null);
     try {
-      await createCashRegister({ name: cashName });
+      if (editingCash) {
+        await updateCashRegister(editingCash.id, { name: cashName });
+      } else {
+        await createCashRegister({ name: cashName });
+      }
       setShowCashForm(false);
-      setCashName('');
       load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setCashError((message as string) ?? 'Enregistrement impossible.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteCash = async (register: CashRegister) => {
+    if (!window.confirm('Confirmer la suppression ?')) return;
+    setDeleteError(null);
+    try {
+      await deleteCashRegister(register.id);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setDeleteError((message as string) ?? 'Suppression impossible.');
     }
   };
 
@@ -123,9 +206,11 @@ export function TreasuryPage() {
         </div>
       </div>
 
+      {deleteError && <p className="error">{deleteError}</p>}
+
       <div className="page-header">
         <h2>Comptes bancaires</h2>
-        <button onClick={() => setShowBankForm(true)}>+ Nouveau compte</button>
+        <button onClick={openCreateBank}>+ Nouveau compte</button>
       </div>
       <table>
         <thead>
@@ -133,6 +218,7 @@ export function TreasuryPage() {
             <th>Banque</th>
             <th>Numéro de compte</th>
             <th>Solde</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -141,6 +227,10 @@ export function TreasuryPage() {
               <td>{b.bank_name}</td>
               <td>{b.account_number}</td>
               <td>{b.balance}</td>
+              <td style={{ display: 'flex', gap: 8 }}>
+                {canUpdate && <button className="secondary" onClick={() => openEditBank(b)}>Modifier</button>}
+                {canDelete && <button className="secondary" onClick={() => handleDeleteBank(b)}>Supprimer</button>}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -148,7 +238,7 @@ export function TreasuryPage() {
 
       <div className="page-header" style={{ marginTop: 24 }}>
         <h2>Caisses</h2>
-        <button onClick={() => setShowCashForm(true)}>+ Nouvelle caisse</button>
+        <button onClick={openCreateCash}>+ Nouvelle caisse</button>
       </div>
       <table>
         <thead>
@@ -166,6 +256,8 @@ export function TreasuryPage() {
               <td style={{ display: 'flex', gap: 8 }}>
                 <button className="secondary" onClick={() => openMovement(c, 'deposit')}>Dépôt</button>
                 <button className="secondary" onClick={() => openMovement(c, 'withdraw')}>Retrait</button>
+                {canUpdate && <button className="secondary" onClick={() => openEditCash(c)}>Modifier</button>}
+                {canDelete && <button className="secondary" onClick={() => handleDeleteCash(c)}>Supprimer</button>}
               </td>
             </tr>
           ))}
@@ -175,8 +267,9 @@ export function TreasuryPage() {
       {showBankForm && (
         <div className="modal-backdrop" onClick={() => setShowBankForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouveau compte bancaire</h2>
-            <form onSubmit={handleCreateBank}>
+            <h2>{editingBank ? 'Modifier le compte bancaire' : 'Nouveau compte bancaire'}</h2>
+            {bankError && <p className="error">{bankError}</p>}
+            <form onSubmit={handleSubmitBank}>
               <label>
                 Banque
                 <input value={bankName} onChange={(e) => setBankName(e.target.value)} required />
@@ -186,7 +279,7 @@ export function TreasuryPage() {
                 <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editingBank ? 'Enregistrer' : 'Créer'}</button>
                 <button type="button" className="secondary" onClick={() => setShowBankForm(false)}>Annuler</button>
               </div>
             </form>
@@ -197,14 +290,15 @@ export function TreasuryPage() {
       {showCashForm && (
         <div className="modal-backdrop" onClick={() => setShowCashForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouvelle caisse</h2>
-            <form onSubmit={handleCreateCash}>
+            <h2>{editingCash ? 'Modifier la caisse' : 'Nouvelle caisse'}</h2>
+            {cashError && <p className="error">{cashError}</p>}
+            <form onSubmit={handleSubmitCash}>
               <label>
                 Nom
                 <input value={cashName} onChange={(e) => setCashName(e.target.value)} required />
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editingCash ? 'Enregistrer' : 'Créer'}</button>
                 <button type="button" className="secondary" onClick={() => setShowCashForm(false)}>Annuler</button>
               </div>
             </form>

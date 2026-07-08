@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StockMovementRequest extends FormRequest
 {
@@ -26,7 +27,11 @@ class StockMovementRequest extends FormRequest
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'type' => ['required', 'in:entree,sortie,ajustement'],
             'quantity' => ['required', 'integer', 'min:1'],
-            'reason' => ['nullable', 'string'],
+            // Un ajustement corrige un ecart constate (inventaire physique) :
+            // la raison est obligatoire pour tracer pourquoi le stock a ete
+            // force a cette valeur. Entree/sortie normales gardent une raison
+            // facultative comme avant.
+            'reason' => [Rule::requiredIf(fn () => $this->input('type') === 'ajustement'), 'nullable', 'string'],
         ];
     }
 }

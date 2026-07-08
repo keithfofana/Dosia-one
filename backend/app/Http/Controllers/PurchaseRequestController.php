@@ -6,6 +6,7 @@ use App\Http\Requests\PurchaseRequestRequest;
 use App\Models\PurchaseRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseRequestController extends Controller
 {
@@ -38,7 +39,15 @@ class PurchaseRequestController extends Controller
 
     public function update(PurchaseRequestRequest $request, PurchaseRequest $purchaseRequest): JsonResponse
     {
-        $purchaseRequest->update($request->validated());
+        $data = $request->validated();
+
+        if ($purchaseRequest->status !== 'en_attente' && (isset($data['product_id']) || isset($data['quantity']))) {
+            throw ValidationException::withMessages([
+                'quantity' => ['Cette demande a déjà été traitée (validée ou refusée) : le produit et la quantité ne peuvent plus être modifiés.'],
+            ]);
+        }
+
+        $purchaseRequest->update($data);
 
         return response()->json($purchaseRequest->fresh()->load('product', 'requestedBy'));
     }

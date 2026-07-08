@@ -1,20 +1,36 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { createJournalEntry, listChartOfAccounts, listJournalEntries, type JournalEntryLineInput } from '../api/accounting';
+import { isAxiosError } from 'axios';
+import {
+  createJournalEntry,
+  deleteJournalEntry,
+  listChartOfAccounts,
+  listJournalEntries,
+  updateJournalEntry,
+  type JournalEntryLineInput,
+} from '../api/accounting';
+import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/permissions';
 import type { ChartOfAccount, JournalEntry } from '../types/models';
 
 const emptyLine = (): JournalEntryLineInput => ({ account_id: 0, debit: 0, credit: 0 });
 
 export function JournalEntriesPage() {
+  const { user } = useAuth();
+  const canUpdate = hasPermission(user, 'comptabilite.update');
+  const canDelete = hasPermission(user, 'comptabilite.delete');
+
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<JournalEntry | null>(null);
   const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [reference, setReference] = useState('');
   const [description, setDescription] = useState('');
   const [lines, setLines] = useState<JournalEntryLineInput[]>([emptyLine(), emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -39,6 +55,7 @@ export function JournalEntriesPage() {
 
   const resetForm = () => {
     setShowForm(false);
+    setEditing(null);
     setEntryDate(new Date().toISOString().slice(0, 10));
     setReference('');
     setDescription('');
@@ -46,7 +63,23 @@ export function JournalEntriesPage() {
     setError(null);
   };
 
-  const handleCreate = async (e: FormEvent) => {
+  const openEdit = (entry: JournalEntry) => {
+    setEditing(entry);
+    setEntryDate(entry.entry_date.slice(0, 10));
+    setReference(entry.reference ?? '');
+    setDescription(entry.description ?? '');
+    setLines(
+      (entry.journal_entry_lines ?? []).map((l) => ({
+        account_id: l.account_id,
+        debit: Number(l.debit),
+        credit: Number(l.credit),
+      })),
+    );
+    setError(null);
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!isBalanced) {
       setError("L'écriture n'est pas équilibrée : le débit total doit être égal au crédit total.");
@@ -55,18 +88,31 @@ export function JournalEntriesPage() {
     setError(null);
     setSaving(true);
     try {
-      await createJournalEntry(
-        entryDate,
-        reference || undefined,
-        description || undefined,
-        lines.filter((l) => l.account_id > 0)
-      );
+      const filteredLines = lines.filter((l) => l.account_id > 0);
+      if (editing) {
+        await updateJournalEntry(editing.id, entryDate, reference || undefined, description || undefined, filteredLines);
+      } else {
+        await createJournalEntry(entryDate, reference || undefined, description || undefined, filteredLines);
+      }
       resetForm();
       load();
-    } catch {
-      setError("L'écriture a été rejetée par le serveur (débit ≠ crédit, ou compte invalide).");
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setError((message as string) ?? "L'écriture a été rejetée par le serveur (débit ≠ crédit, ou compte invalide).");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (entry: JournalEntry) => {
+    if (!window.confirm('Confirmer la suppression de cette écriture ?')) return;
+    setDeleteError(null);
+    try {
+      await deleteJournalEntry(entry.id);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setDeleteError((message as string) ?? 'Suppression impossible.');
     }
   };
 
@@ -77,19 +123,33 @@ export function JournalEntriesPage() {
         <button onClick={() => setShowForm(true)}>+ Écriture manuelle</button>
       </div>
 
+      {deleteError && <p className="error">{deleteError}</p>}
+
       {loading ? (
         <p>Chargement...</p>
       ) : (
         entries.map((entry) => {
           const debit = entry.journal_entry_lines?.reduce((s, l) => s + Number(l.debit), 0) ?? 0;
+          const isManual = entry.source === 'manuel';
           return (
             <div key={entry.id} className="stat-card" style={{ marginBottom: 12 }}>
               <div className="page-header" style={{ marginBottom: 8 }}>
                 <div>
                   <strong>{entry.reference ?? `Écriture #${entry.id}`}</strong> — {entry.description}
-                  <div className="text-muted">{new Date(entry.entry_date).toLocaleDateString()}</div>
+                  <div className="text-muted">
+                    {new Date(entry.entry_date).toLocaleDateString()}
+                    {!isManual && ' · générée automatiquement'}
+                  </div>
                 </div>
-                <span className="badge">{debit.toFixed(2)}</span>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span className="badge">{debit.toFixed(2)}</span>
+                  {isManual && canUpdate && (
+                    <button className="secondary" onClick={() => openEdit(entry)}>Modifier</button>
+                  )}
+                  {isManual && canDelete && (
+                    <button className="secondary" onClick={() => handleDelete(entry)}>Supprimer</button>
+                  )}
+                </div>
               </div>
               <table>
                 <thead>
@@ -117,8 +177,8 @@ export function JournalEntriesPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={resetForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ width: 560 }}>
-            <h2>Nouvelle écriture manuelle</h2>
-            <form onSubmit={handleCreate}>
+            <h2>{editing ? 'Modifier l\'écriture' : 'Nouvelle écriture manuelle'}</h2>
+            <form onSubmit={handleSubmit}>
               <label>
                 Date
                 <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} required />
@@ -165,7 +225,7 @@ export function JournalEntriesPage() {
               {error && <p className="error">{error}</p>}
 
               <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button type="submit" disabled={saving || !isBalanced}>{saving ? '...' : 'Enregistrer'}</button>
+                <button type="submit" disabled={saving || !isBalanced}>{saving ? '...' : editing ? 'Enregistrer' : 'Enregistrer'}</button>
                 <button type="button" className="secondary" onClick={resetForm}>Annuler</button>
               </div>
             </form>

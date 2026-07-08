@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -47,6 +48,20 @@ class ProductController extends Controller
 
     public function destroy(Product $product): JsonResponse
     {
+        $hasHistory = $product->stockMovements()->exists()
+            || $product->quoteItems()->exists()
+            || $product->invoiceItems()->exists()
+            || $product->purchaseOrderItems()->exists()
+            || $product->purchaseRequests()->exists()
+            || $product->productionOrders()->exists()
+            || $product->billOfMaterials()->exists();
+
+        if ($hasHistory) {
+            throw ValidationException::withMessages([
+                'name' => ["Ce produit « {$product->name} » est déjà utilisé (ventes, achats, stock ou production) : il ne peut pas être supprimé."],
+            ]);
+        }
+
         $product->delete();
 
         return response()->json(null, 204);

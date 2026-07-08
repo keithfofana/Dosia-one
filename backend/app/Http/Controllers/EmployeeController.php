@@ -7,6 +7,7 @@ use App\Models\Employee;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class EmployeeController extends Controller
 {
@@ -59,6 +60,15 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee): JsonResponse
     {
+        // Attendances/leaves/contracts/evaluations sont supprimes en cascade
+        // (donnees secondaires) mais un salaire deja paye a genere une
+        // ecriture comptable : on ne le laisse pas partir silencieusement.
+        if ($employee->salaries()->where('status', 'paye')->exists()) {
+            throw ValidationException::withMessages([
+                'name' => ["Cet employé « {$employee->name} » a déjà des salaires payés (écritures comptables générées) : il ne peut pas être supprimé."],
+            ]);
+        }
+
         $employee->delete();
 
         return response()->json(null, 204);

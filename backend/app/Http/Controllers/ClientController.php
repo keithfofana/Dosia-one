@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\ClientInteraction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ClientController extends Controller
 {
@@ -41,6 +42,12 @@ class ClientController extends Controller
 
     public function destroy(Client $client): JsonResponse
     {
+        if ($client->quotes()->exists() || $client->invoices()->exists() || $client->deliveryNotes()->exists()) {
+            throw ValidationException::withMessages([
+                'name' => ["Ce client « {$client->name} » a déjà des devis, factures ou bons de livraison : il ne peut pas être supprimé."],
+            ]);
+        }
+
         $client->delete();
 
         return response()->json(null, 204);

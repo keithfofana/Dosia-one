@@ -6,6 +6,7 @@ use App\Http\Requests\ChartOfAccountRequest;
 use App\Models\ChartOfAccount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ChartOfAccountController extends Controller
 {
@@ -33,13 +34,27 @@ class ChartOfAccountController extends Controller
 
     public function update(ChartOfAccountRequest $request, ChartOfAccount $chartOfAccount): JsonResponse
     {
-        $chartOfAccount->update($request->validated());
+        $data = $request->validated();
+
+        if (isset($data['type']) && $data['type'] !== $chartOfAccount->type && $chartOfAccount->journalEntryLines()->exists()) {
+            throw ValidationException::withMessages([
+                'type' => ["Ce compte « {$chartOfAccount->code} » est déjà utilisé dans des écritures comptables : son type ne peut plus être modifié."],
+            ]);
+        }
+
+        $chartOfAccount->update($data);
 
         return response()->json($chartOfAccount->fresh());
     }
 
     public function destroy(ChartOfAccount $chartOfAccount): JsonResponse
     {
+        if ($chartOfAccount->journalEntryLines()->exists()) {
+            throw ValidationException::withMessages([
+                'code' => ["Ce compte « {$chartOfAccount->code} » est déjà utilisé dans des écritures comptables : il ne peut pas être supprimé."],
+            ]);
+        }
+
         $chartOfAccount->delete();
 
         return response()->json(null, 204);

@@ -44,6 +44,12 @@ class CashRegisterController extends Controller
 
     public function destroy(CashRegister $cashRegister): JsonResponse
     {
+        if ((float) $cashRegister->balance !== 0.0 || $cashRegister->cashMovements()->exists()) {
+            throw ValidationException::withMessages([
+                'name' => ["Cette caisse « {$cashRegister->name} » a un solde non nul ou des mouvements enregistrés : elle ne peut pas être supprimée."],
+            ]);
+        }
+
         $cashRegister->delete();
 
         return response()->json(null, 204);

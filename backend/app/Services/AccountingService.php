@@ -240,6 +240,7 @@ class AccountingService
                 'entry_date' => now(),
                 'reference' => $reference,
                 'description' => $description,
+                'source' => 'auto',
             ]);
 
             $entry->journalEntryLines()->createMany($lines);

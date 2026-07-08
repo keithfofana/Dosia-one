@@ -15,3 +15,12 @@ export async function updatePurchaseRequestStatus(id: number, status: PurchaseRe
   const { data } = await apiClient.put<PurchaseRequest>(`/purchase-requests/${id}`, { status });
   return data;
 }
+
+export async function updatePurchaseRequest(id: number, productId: number, quantity: number): Promise<PurchaseRequest> {
+  const { data } = await apiClient.put<PurchaseRequest>(`/purchase-requests/${id}`, { product_id: productId, quantity });
+  return data;
+}
+
+export async function deletePurchaseRequest(id: number): Promise<void> {
+  await apiClient.delete(`/purchase-requests/${id}`);
+}

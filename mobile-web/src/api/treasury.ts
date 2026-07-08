@@ -11,6 +11,15 @@ export async function createBankAccount(payload: Partial<BankAccount>): Promise<
   return data;
 }
 
+export async function updateBankAccount(id: number, payload: Partial<BankAccount>): Promise<BankAccount> {
+  const { data } = await apiClient.put<BankAccount>(`/bank-accounts/${id}`, payload);
+  return data;
+}
+
+export async function deleteBankAccount(id: number): Promise<void> {
+  await apiClient.delete(`/bank-accounts/${id}`);
+}
+
 export async function listCashRegisters(): Promise<PaginatedResponse<CashRegister>> {
   const { data } = await apiClient.get<PaginatedResponse<CashRegister>>('/cash-registers');
   return data;
@@ -19,6 +28,15 @@ export async function listCashRegisters(): Promise<PaginatedResponse<CashRegiste
 export async function createCashRegister(payload: Partial<CashRegister>): Promise<CashRegister> {
   const { data } = await apiClient.post<CashRegister>('/cash-registers', payload);
   return data;
+}
+
+export async function updateCashRegister(id: number, payload: Partial<CashRegister>): Promise<CashRegister> {
+  const { data } = await apiClient.put<CashRegister>(`/cash-registers/${id}`, payload);
+  return data;
+}
+
+export async function deleteCashRegister(id: number): Promise<void> {
+  await apiClient.delete(`/cash-registers/${id}`);
 }
 
 export async function depositToCashRegister(id: number, amount: number, reason?: string): Promise<CashRegister> {

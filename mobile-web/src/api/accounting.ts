@@ -26,6 +26,15 @@ export async function createChartOfAccount(payload: Partial<ChartOfAccount>): Pr
   return data;
 }
 
+export async function updateChartOfAccount(id: number, payload: Partial<ChartOfAccount>): Promise<ChartOfAccount> {
+  const { data } = await apiClient.put<ChartOfAccount>(`/chart-of-accounts/${id}`, payload);
+  return data;
+}
+
+export async function deleteChartOfAccount(id: number): Promise<void> {
+  await apiClient.delete(`/chart-of-accounts/${id}`);
+}
+
 export async function listJournalEntries(): Promise<PaginatedResponse<JournalEntry>> {
   const { data } = await apiClient.get<PaginatedResponse<JournalEntry>>('/journal-entries');
   return data;
@@ -44,6 +53,26 @@ export async function createJournalEntry(
     lines,
   });
   return data;
+}
+
+export async function updateJournalEntry(
+  id: number,
+  entryDate: string,
+  reference: string | undefined,
+  description: string | undefined,
+  lines: JournalEntryLineInput[]
+): Promise<JournalEntry> {
+  const { data } = await apiClient.put<JournalEntry>(`/journal-entries/${id}`, {
+    entry_date: entryDate,
+    reference,
+    description,
+    lines,
+  });
+  return data;
+}
+
+export async function deleteJournalEntry(id: number): Promise<void> {
+  await apiClient.delete(`/journal-entries/${id}`);
 }
 
 export async function getLedger(filters: { account_id?: number; from?: string; to?: string } = {}): Promise<LedgerMovement[]> {

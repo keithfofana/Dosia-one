@@ -21,3 +21,12 @@ export async function updateLeaveStatus(id: number, status: Leave['status']): Pr
   const { data } = await apiClient.put<Leave>(`/leaves/${id}`, { status });
   return data;
 }
+
+export async function updateLeave(id: number, payload: LeaveInput): Promise<Leave> {
+  const { data } = await apiClient.put<Leave>(`/leaves/${id}`, payload);
+  return data;
+}
+
+export async function deleteLeave(id: number): Promise<void> {
+  await apiClient.delete(`/leaves/${id}`);
+}

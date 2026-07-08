@@ -333,6 +333,49 @@ export interface SessionInfo {
   is_current: boolean;
 }
 
+export interface StockMovement {
+  id: number;
+  company_id: number;
+  product_id: number;
+  type: 'entree' | 'sortie' | 'ajustement';
+  quantity: number;
+  reason: string | null;
+  user_id: number | null;
+  created_at: string;
+  product?: Product;
+  user?: { id: number; name: string } | null;
+}
+
+export interface StockVariationMovement {
+  id: number;
+  type: StockMovement['type'];
+  quantity: number;
+  reason: string | null;
+  created_at: string;
+  user: { id: number; name: string } | null;
+  quantity_after: number;
+}
+
+export interface StockVariation {
+  opening_quantity: number;
+  closing_quantity: number;
+  variation: number;
+  movements: StockVariationMovement[];
+}
+
+export interface DocumentFile {
+  id: number;
+  company_id: number;
+  title: string;
+  type: 'contrat' | 'facture' | 'rapport' | 'archive' | 'autre';
+  file_path: string;
+  // Le backend charge toujours la relation `uploadedBy`, qui ecrase la cle
+  // `uploaded_by` (cast en snake_case par Eloquent) avec l'objet utilisateur
+  // complet plutot que l'ID brut — verifie empiriquement, pas une supposition.
+  uploaded_by: { id: number; name: string } | null;
+  created_at: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   current_page: number;
@@ -395,6 +438,7 @@ export interface JournalEntry {
   entry_date: string;
   reference: string | null;
   description: string | null;
+  source: 'manuel' | 'auto';
   journal_entry_lines?: JournalEntryLine[];
   created_at: string;
 }

@@ -6,6 +6,7 @@ use App\Http\Requests\BankAccountRequest;
 use App\Models\BankAccount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class BankAccountController extends Controller
 {
@@ -40,6 +41,12 @@ class BankAccountController extends Controller
 
     public function destroy(BankAccount $bankAccount): JsonResponse
     {
+        if ((float) $bankAccount->balance !== 0.0 || $bankAccount->bankTransactions()->exists()) {
+            throw ValidationException::withMessages([
+                'bank_name' => ["Ce compte « {$bankAccount->bank_name} » a un solde non nul ou des transactions enregistrées : il ne peut pas être supprimé."],
+            ]);
+        }
+
         $bankAccount->delete();
 
         return response()->json(null, 204);

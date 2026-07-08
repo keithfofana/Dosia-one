@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['company_id', 'entry_date', 'reference', 'description'])]
+#[Fillable(['company_id', 'entry_date', 'reference', 'description', 'source'])]
 class JournalEntry extends Model
 {
     use BelongsToCompany, HasFactory;

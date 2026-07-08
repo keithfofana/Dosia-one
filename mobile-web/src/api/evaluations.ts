@@ -17,3 +17,12 @@ export async function createEvaluation(payload: EvaluationInput): Promise<Evalua
   const { data } = await apiClient.post<Evaluation>('/evaluations', payload);
   return data;
 }
+
+export async function updateEvaluation(id: number, payload: EvaluationInput): Promise<Evaluation> {
+  const { data } = await apiClient.put<Evaluation>(`/evaluations/${id}`, payload);
+  return data;
+}
+
+export async function deleteEvaluation(id: number): Promise<void> {
+  await apiClient.delete(`/evaluations/${id}`);
+}

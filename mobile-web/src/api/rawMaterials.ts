@@ -17,3 +17,12 @@ export async function createRawMaterial(payload: RawMaterialInput): Promise<RawM
   const { data } = await apiClient.post<RawMaterial>('/raw-materials', payload);
   return data;
 }
+
+export async function updateRawMaterial(id: number, payload: RawMaterialInput): Promise<RawMaterial> {
+  const { data } = await apiClient.put<RawMaterial>(`/raw-materials/${id}`, payload);
+  return data;
+}
+
+export async function deleteRawMaterial(id: number): Promise<void> {
+  await apiClient.delete(`/raw-materials/${id}`);
+}

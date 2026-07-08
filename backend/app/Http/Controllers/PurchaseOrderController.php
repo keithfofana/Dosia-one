@@ -12,6 +12,7 @@ use App\Services\AccountingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderController extends Controller
 {
@@ -59,6 +60,12 @@ class PurchaseOrderController extends Controller
     {
         $data = $request->validated();
 
+        if ($purchaseOrder->goodsReceipts()->exists() && isset($data['items'])) {
+            throw ValidationException::withMessages([
+                'items' => ['Cette commande a déjà des réceptions de marchandises enregistrées : ses lignes ne peuvent plus être modifiées.'],
+            ]);
+        }
+
         DB::transaction(function () use ($data, $purchaseOrder) {
             if (isset($data['items'])) {
                 $total = collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['unit_price']);
@@ -75,6 +82,12 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder): JsonResponse
     {
+        if ($purchaseOrder->goodsReceipts()->exists() || in_array($purchaseOrder->status, ['recue', 'recue_partiel'], true)) {
+            throw ValidationException::withMessages([
+                'status' => ['Cette commande a déjà des réceptions de marchandises : elle ne peut pas être supprimée. Annulez-la à la place.'],
+            ]);
+        }
+
         $purchaseOrder->delete();
 
         return response()->json(null, 204);

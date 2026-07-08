@@ -22,3 +22,12 @@ export async function createEmployee(payload: EmployeeInput): Promise<Employee> 
   const { data } = await apiClient.post<Employee>('/employees', payload);
   return data;
 }
+
+export async function updateEmployee(id: number, payload: EmployeeInput): Promise<Employee> {
+  const { data } = await apiClient.put<Employee>(`/employees/${id}`, payload);
+  return data;
+}
+
+export async function deleteEmployee(id: number): Promise<void> {
+  await apiClient.delete(`/employees/${id}`);
+}

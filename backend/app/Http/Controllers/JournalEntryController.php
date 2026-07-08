@@ -7,6 +7,7 @@ use App\Models\JournalEntry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class JournalEntryController extends Controller
 {
@@ -30,6 +31,7 @@ class JournalEntryController extends Controller
                 'entry_date' => $data['entry_date'],
                 'reference' => $data['reference'] ?? null,
                 'description' => $data['description'] ?? null,
+                'source' => 'manuel',
             ]);
 
             $entry->journalEntryLines()->createMany($data['lines']);
@@ -47,6 +49,8 @@ class JournalEntryController extends Controller
 
     public function update(JournalEntryRequest $request, JournalEntry $journalEntry): JsonResponse
     {
+        $this->ensureManual($journalEntry);
+
         $data = $request->validated();
 
         DB::transaction(function () use ($data, $journalEntry) {
@@ -63,8 +67,19 @@ class JournalEntryController extends Controller
 
     public function destroy(JournalEntry $journalEntry): JsonResponse
     {
+        $this->ensureManual($journalEntry);
+
         $journalEntry->delete();
 
         return response()->json(null, 204);
+    }
+
+    private function ensureManual(JournalEntry $journalEntry): void
+    {
+        if ($journalEntry->source === 'auto') {
+            throw ValidationException::withMessages([
+                'source' => ["Cette écriture a été générée automatiquement (référence « {$journalEntry->reference} ») et ne peut pas être modifiée ou supprimée manuellement, afin de préserver la cohérence du grand livre."],
+            ]);
+        }
     }
 }

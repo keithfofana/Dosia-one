@@ -12,6 +12,7 @@ use App\Services\AccountingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
@@ -69,6 +70,30 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
 
+        // Annuler une facture (au lieu de la supprimer) : on remet le stock
+        // vendu, on garde la facture comme trace historique. Toute autre
+        // modification simultanee des lignes est ignoree dans ce cas.
+        if (($data['status'] ?? null) === 'annule' && $invoice->status !== 'annule') {
+            DB::transaction(function () use ($invoice) {
+                $this->moveStockForItems(
+                    $invoice->invoiceItems->map(fn ($item) => ['product_id' => $item->product_id, 'quantity' => $item->quantity])->all(),
+                    $invoice,
+                    'entree',
+                    "Annulation facture #{$invoice->number}"
+                );
+
+                $invoice->update(['status' => 'annule']);
+            });
+
+            return response()->json($invoice->fresh()->load('invoiceItems.product', 'client'));
+        }
+
+        if ($invoice->payments()->exists() && (isset($data['items']) || isset($data['status']))) {
+            throw ValidationException::withMessages([
+                'items' => ["Cette facture a déjà des paiements enregistrés : ses lignes et son statut ne peuvent plus être modifiés directement. Utilisez l'annulation si nécessaire."],
+            ]);
+        }
+
         DB::transaction(function () use ($data, $invoice) {
             if (isset($data['items'])) {
                 $total = collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['unit_price']);
@@ -95,6 +120,12 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice): JsonResponse
     {
+        if ($invoice->status !== 'due' || $invoice->payments()->exists()) {
+            throw ValidationException::withMessages([
+                'status' => ["Cette facture a déjà des paiements ou n'est plus au statut « due » : elle ne peut pas être supprimée. Annulez-la à la place."],
+            ]);
+        }
+
         DB::transaction(function () use ($invoice) {
             $this->moveStockForItems(
                 $invoice->invoiceItems->map(fn ($item) => ['product_id' => $item->product_id, 'quantity' => $item->quantity])->all(),

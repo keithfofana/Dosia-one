@@ -1,7 +1,20 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { createPurchaseOrder, getPurchaseOrder, listPurchaseOrders, receivePurchaseOrder, type PurchaseOrderItemInput, type ReceiveItemInput } from '../api/purchaseOrders';
+import { isAxiosError } from 'axios';
+import {
+  cancelPurchaseOrder,
+  createPurchaseOrder,
+  deletePurchaseOrder,
+  getPurchaseOrder,
+  listPurchaseOrders,
+  receivePurchaseOrder,
+  updatePurchaseOrder,
+  type PurchaseOrderItemInput,
+  type ReceiveItemInput,
+} from '../api/purchaseOrders';
 import { listSuppliers } from '../api/suppliers';
 import { listProducts } from '../api/products';
+import { useAuth } from '../context/AuthContext';
+import { hasPermission } from '../utils/permissions';
 import type { Product, PurchaseOrder, Supplier } from '../types/models';
 
 const statusColor = (status: PurchaseOrder['status']) => {
@@ -10,15 +23,24 @@ const statusColor = (status: PurchaseOrder['status']) => {
   return undefined;
 };
 
+const editable = (status: PurchaseOrder['status']) => status === 'brouillon' || status === 'envoyee';
+
 export function PurchaseOrdersPage() {
+  const { user } = useAuth();
+  const canUpdate = hasPermission(user, 'achats.update');
+  const canDelete = hasPermission(user, 'achats.delete');
+
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<PurchaseOrder | null>(null);
   const [supplierId, setSupplierId] = useState<number | ''>('');
   const [items, setItems] = useState<PurchaseOrderItemInput[]>([{ product_id: 0, quantity: 1, unit_price: 0 }]);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [receivingOrder, setReceivingOrder] = useState<PurchaseOrder | null>(null);
   const [receiveQuantities, setReceiveQuantities] = useState<Record<number, number>>({});
 
@@ -45,18 +67,71 @@ export function PurchaseOrdersPage() {
     updateItem(index, { product_id: productId, unit_price: product ? Number(product.purchase_price) : 0 });
   };
 
-  const handleCreate = async (e: FormEvent) => {
+  const openCreate = () => {
+    setEditing(null);
+    setFormError(null);
+    setSupplierId('');
+    setItems([{ product_id: 0, quantity: 1, unit_price: 0 }]);
+    setShowForm(true);
+  };
+
+  const openEdit = async (order: PurchaseOrder) => {
+    const full = await getPurchaseOrder(order.id);
+    setEditing(full);
+    setFormError(null);
+    setSupplierId(full.supplier_id);
+    setItems(
+      (full.purchase_order_items ?? []).map((it) => ({
+        product_id: it.product_id,
+        quantity: it.quantity,
+        unit_price: Number(it.unit_price),
+      })),
+    );
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!supplierId) return;
     setSaving(true);
+    setFormError(null);
     try {
-      await createPurchaseOrder(supplierId, items.filter((it) => it.product_id > 0));
+      if (editing) {
+        await updatePurchaseOrder(editing.id, supplierId, items.filter((it) => it.product_id > 0));
+      } else {
+        await createPurchaseOrder(supplierId, items.filter((it) => it.product_id > 0));
+      }
       setShowForm(false);
-      setItems([{ product_id: 0, quantity: 1, unit_price: 0 }]);
-      setSupplierId('');
       load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setFormError((message as string) ?? 'Enregistrement impossible.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCancel = async (order: PurchaseOrder) => {
+    if (!window.confirm('Confirmer l\'annulation de cette commande ?')) return;
+    setActionError(null);
+    try {
+      await cancelPurchaseOrder(order.id);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setActionError((message as string) ?? 'Annulation impossible.');
+    }
+  };
+
+  const handleDelete = async (order: PurchaseOrder) => {
+    if (!window.confirm('Confirmer la suppression ?')) return;
+    setActionError(null);
+    try {
+      await deletePurchaseOrder(order.id);
+      load();
+    } catch (err) {
+      const message = isAxiosError(err) ? Object.values(err.response?.data?.errors ?? {})[0]?.[0] : undefined;
+      setActionError((message as string) ?? 'Suppression impossible : annulez la commande à la place.');
     }
   };
 
@@ -92,8 +167,10 @@ export function PurchaseOrdersPage() {
     <div>
       <div className="page-header">
         <h1>Commandes fournisseurs</h1>
-        <button onClick={() => setShowForm(true)}>+ Nouvelle commande</button>
+        <button onClick={openCreate}>+ Nouvelle commande</button>
       </div>
+
+      {actionError && <p className="error">{actionError}</p>}
 
       {loading ? (
         <p>Chargement...</p>
@@ -115,9 +192,18 @@ export function PurchaseOrdersPage() {
                 <td>{o.supplier?.name}</td>
                 <td><span className="badge" style={{ color: statusColor(o.status) }}>{o.status}</span></td>
                 <td>{o.total}</td>
-                <td>
+                <td style={{ display: 'flex', gap: 8 }}>
                   {(o.status === 'brouillon' || o.status === 'envoyee' || o.status === 'recue_partiel') && (
                     <button className="secondary" onClick={() => openReceive(o)}>Réceptionner</button>
+                  )}
+                  {canUpdate && editable(o.status) && (
+                    <button className="secondary" onClick={() => openEdit(o)}>Modifier</button>
+                  )}
+                  {canUpdate && o.status !== 'annulee' && o.status !== 'recue' && (
+                    <button className="secondary" onClick={() => handleCancel(o)}>Annuler</button>
+                  )}
+                  {canDelete && editable(o.status) && (
+                    <button className="secondary" onClick={() => handleDelete(o)}>Supprimer</button>
                   )}
                 </td>
               </tr>
@@ -129,8 +215,9 @@ export function PurchaseOrdersPage() {
       {showForm && (
         <div className="modal-backdrop" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouvelle commande fournisseur</h2>
-            <form onSubmit={handleCreate}>
+            <h2>{editing ? 'Modifier la commande' : 'Nouvelle commande fournisseur'}</h2>
+            {formError && <p className="error">{formError}</p>}
+            <form onSubmit={handleSubmit}>
               <label>
                 Fournisseur
                 <select value={supplierId} onChange={(e) => setSupplierId(Number(e.target.value))} required>
@@ -167,7 +254,7 @@ export function PurchaseOrdersPage() {
               <button type="button" className="secondary" onClick={addItem}>+ Ligne</button>
 
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <button type="submit" disabled={saving}>{saving ? '...' : 'Créer'}</button>
+                <button type="submit" disabled={saving}>{saving ? '...' : editing ? 'Enregistrer' : 'Créer'}</button>
                 <button type="button" className="secondary" onClick={() => setShowForm(false)}>Annuler</button>
               </div>
             </form>

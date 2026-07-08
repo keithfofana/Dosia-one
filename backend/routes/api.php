@@ -48,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // 3. STOCK
     // ==========================================
     Route::apiResource('products', \App\Http\Controllers\ProductController::class);
+    Route::get('/stock-movements/variation', [\App\Http\Controllers\StockMovementController::class, 'variation']);
     Route::apiResource('stock-movements', \App\Http\Controllers\StockMovementController::class);
     Route::apiResource('inventory-counts', \App\Http\Controllers\InventoryCountController::class);
     Route::apiResource('suppliers', \App\Http\Controllers\SupplierController::class);
@@ -121,10 +122,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ==========================================
-    // 10. DOCUMENTS
+    // 10. DOCUMENTS (reserve aux roles ayant la permission documents.view)
     // ==========================================
-    Route::apiResource('documents', \App\Http\Controllers\DocumentController::class);
-    Route::get('/documents/{document}/download', [\App\Http\Controllers\DocumentController::class, 'download']);
+    Route::middleware('permission:documents.view')->group(function () {
+        Route::apiResource('documents', \App\Http\Controllers\DocumentController::class);
+        Route::get('/documents/{document}/download', [\App\Http\Controllers\DocumentController::class, 'download']);
+    });
 
     // ==========================================
     // 12. PARAMETRES (reserve aux roles ayant la permission parametres.view)

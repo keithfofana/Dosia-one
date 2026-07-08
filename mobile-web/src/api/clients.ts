@@ -20,3 +20,12 @@ export async function getClientHistory(id: number): Promise<ClientHistoryEntry[]
   const { data } = await apiClient.get<ClientHistoryEntry[]>(`/clients/${id}/history`);
   return data;
 }
+
+export async function updateClient(id: number, payload: Partial<Client>): Promise<Client> {
+  const { data } = await apiClient.put<Client>(`/clients/${id}`, payload);
+  return data;
+}
+
+export async function deleteClient(id: number): Promise<void> {
+  await apiClient.delete(`/clients/${id}`);
+}

@@ -22,3 +22,12 @@ export async function updateAttendanceCheckOut(id: number, checkOut: string): Pr
   const { data } = await apiClient.put<Attendance>(`/attendances/${id}`, { check_out: checkOut });
   return data;
 }
+
+export async function updateAttendance(id: number, payload: AttendanceInput): Promise<Attendance> {
+  const { data } = await apiClient.put<Attendance>(`/attendances/${id}`, payload);
+  return data;
+}
+
+export async function deleteAttendance(id: number): Promise<void> {
+  await apiClient.delete(`/attendances/${id}`);
+}

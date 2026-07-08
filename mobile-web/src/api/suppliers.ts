@@ -10,3 +10,12 @@ export async function createSupplier(payload: Partial<Supplier>): Promise<Suppli
   const { data } = await apiClient.post<Supplier>('/suppliers', payload);
   return data;
 }
+
+export async function updateSupplier(id: number, payload: Partial<Supplier>): Promise<Supplier> {
+  const { data } = await apiClient.put<Supplier>(`/suppliers/${id}`, payload);
+  return data;
+}
+
+export async function deleteSupplier(id: number): Promise<void> {
+  await apiClient.delete(`/suppliers/${id}`);
+}

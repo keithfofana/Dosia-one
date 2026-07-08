@@ -6,6 +6,7 @@ use App\Http\Requests\RawMaterialRequest;
 use App\Models\RawMaterial;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RawMaterialController extends Controller
 {
@@ -40,6 +41,12 @@ class RawMaterialController extends Controller
 
     public function destroy(RawMaterial $rawMaterial): JsonResponse
     {
+        if ($rawMaterial->billOfMaterials()->exists()) {
+            throw ValidationException::withMessages([
+                'name' => ["Cette matière première « {$rawMaterial->name} » est déjà utilisée dans une nomenclature ou un ordre de fabrication : elle ne peut pas être supprimée."],
+            ]);
+        }
+
         $rawMaterial->delete();
 
         return response()->json(null, 204);

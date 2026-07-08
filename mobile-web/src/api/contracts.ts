@@ -17,3 +17,12 @@ export async function createContract(payload: ContractInput): Promise<Contract> 
   const { data } = await apiClient.post<Contract>('/contracts', payload);
   return data;
 }
+
+export async function updateContract(id: number, payload: ContractInput): Promise<Contract> {
+  const { data } = await apiClient.put<Contract>(`/contracts/${id}`, payload);
+  return data;
+}
+
+export async function deleteContract(id: number): Promise<void> {
+  await apiClient.delete(`/contracts/${id}`);
+}

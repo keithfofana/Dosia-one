@@ -8,6 +8,7 @@ use App\Models\Quote;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class QuoteController extends Controller
 {
@@ -55,6 +56,12 @@ class QuoteController extends Controller
     {
         $data = $request->validated();
 
+        if ($quote->status === 'converti' && isset($data['items'])) {
+            throw ValidationException::withMessages([
+                'items' => ['Ce devis a déjà été converti en facture : ses lignes ne peuvent plus être modifiées.'],
+            ]);
+        }
+
         DB::transaction(function () use ($data, $quote) {
             if (isset($data['items'])) {
                 $total = collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['unit_price']);
@@ -71,6 +78,12 @@ class QuoteController extends Controller
 
     public function destroy(Quote $quote): JsonResponse
     {
+        if ($quote->status === 'converti') {
+            throw ValidationException::withMessages([
+                'status' => ['Ce devis a déjà été converti en facture : il ne peut pas être supprimé.'],
+            ]);
+        }
+
         $quote->delete();
 
         return response()->json(null, 204);

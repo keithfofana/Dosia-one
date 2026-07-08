@@ -29,3 +29,12 @@ export async function getProductionOrderCost(id: number): Promise<ProductionCost
   const { data } = await apiClient.get<ProductionCostSummary>(`/production-orders/${id}/cost`);
   return data;
 }
+
+export async function updateProductionOrderQuantity(id: number, quantityToProduce: number): Promise<ProductionOrder> {
+  const { data } = await apiClient.put<ProductionOrder>(`/production-orders/${id}`, { quantity_to_produce: quantityToProduce });
+  return data;
+}
+
+export async function deleteProductionOrder(id: number): Promise<void> {
+  await apiClient.delete(`/production-orders/${id}`);
+}

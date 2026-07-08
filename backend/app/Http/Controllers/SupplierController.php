@@ -6,6 +6,7 @@ use App\Http\Requests\SupplierRequest;
 use App\Models\Supplier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class SupplierController extends Controller
 {
@@ -40,6 +41,12 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier): JsonResponse
     {
+        if ($supplier->purchaseOrders()->exists()) {
+            throw ValidationException::withMessages([
+                'name' => ["Ce fournisseur « {$supplier->name} » a déjà des commandes d'achat : il ne peut pas être supprimé."],
+            ]);
+        }
+
         $supplier->delete();
 
         return response()->json(null, 204);

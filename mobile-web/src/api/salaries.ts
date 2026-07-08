@@ -21,3 +21,12 @@ export async function markSalaryPaid(id: number): Promise<Salary> {
   const { data } = await apiClient.put<Salary>(`/salaries/${id}`, { status: 'paye' });
   return data;
 }
+
+export async function updateSalary(id: number, payload: SalaryInput): Promise<Salary> {
+  const { data } = await apiClient.put<Salary>(`/salaries/${id}`, payload);
+  return data;
+}
+
+export async function deleteSalary(id: number): Promise<void> {
+  await apiClient.delete(`/salaries/${id}`);
+}
